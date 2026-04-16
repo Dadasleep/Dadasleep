@@ -127,6 +127,35 @@ textarea { resize:vertical; min-height:80px; }
 .radio-group { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
 .radio-option { padding:8px 14px; border:1.5px solid #e8e0d5; border-radius:20px; font-family:'Tajawal',sans-serif; font-size:13px; font-weight:500; color:var(--soft-brown); cursor:pointer; transition:all 0.2s; background:var(--cream); }
 .radio-option.selected { background:var(--sage); color:white; border-color:var(--sage); }
+
+/* TIMER SCREEN */
+#timerScreen { min-height:100vh; }
+#timerScreen.active { display:flex; flex-direction:column; }
+.timer-header { background:var(--white); padding:14px 20px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 12px rgba(90,74,58,0.07); position:sticky; top:0; z-index:100; }
+.timer-body { flex:1; padding:20px 16px 40px; }
+.timer-hero-card { background:linear-gradient(160deg,#2d5a2d 0%,#4a7a4a 50%,#8aab8a 100%); border-radius:24px; padding:28px 20px; margin-bottom:20px; text-align:center; position:relative; overflow:hidden; }
+.timer-hero-card::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 80% 20%,rgba(232,201,122,0.2) 0%,transparent 50%); }
+.timer-hero-title { font-size:22px; font-weight:800; color:white; position:relative; margin-bottom:4px; }
+.timer-hero-sub { font-size:13px; color:rgba(255,255,255,0.8); position:relative; }
+.timer-card { background:var(--white); border-radius:var(--radius); padding:20px; margin-bottom:16px; box-shadow:var(--shadow); }
+.timer-section-title { font-size:15px; font-weight:700; color:var(--warm-brown); margin-bottom:14px; }
+.day-chips { display:flex; gap:8px; flex-wrap:wrap; }
+.day-chip-t { padding:9px 16px; border:1.5px solid #e8e0d5; border-radius:20px; font-family:'Tajawal',sans-serif; font-size:13px; font-weight:600; color:var(--soft-brown); cursor:pointer; background:var(--cream); transition:all 0.2s; }
+.day-chip-t.active { background:var(--sage); color:white; border-color:var(--sage); }
+.sleep-types { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.sleep-type-btn { padding:14px 10px; border:1.5px solid #e8e0d5; border-radius:14px; font-family:'Tajawal',sans-serif; font-size:13px; font-weight:600; color:var(--soft-brown); cursor:pointer; background:var(--cream); transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.sleep-type-btn.active { background:var(--sage); color:white; border-color:var(--sage); }
+.type-icon { font-size:22px; }
+.timer-action-card { background:var(--white); border-radius:var(--radius); padding:28px 20px; box-shadow:var(--shadow); text-align:center; }
+.timer-status-text { font-size:14px; color:var(--soft-brown); margin-bottom:8px; min-height:20px; }
+.timer-time-display { font-size:40px; font-weight:800; color:var(--sage); letter-spacing:2px; margin-bottom:20px; min-height:48px; font-variant-numeric:tabular-nums; }
+.btn-timer-sleep { width:100%; padding:18px; background:var(--sage); color:white; border:none; border-radius:16px; font-family:'Tajawal',sans-serif; font-size:18px; font-weight:700; cursor:pointer; transition:all 0.2s; margin-bottom:12px; }
+.btn-timer-sleep:disabled { background:#ccc; cursor:not-allowed; }
+.btn-timer-wake { width:100%; padding:18px; background:var(--accent); color:white; border:none; border-radius:16px; font-family:'Tajawal',sans-serif; font-size:18px; font-weight:700; cursor:pointer; transition:all 0.2s; margin-bottom:12px; display:none; }
+.btn-timer-cancel { width:100%; padding:12px; background:var(--sage-pale); color:var(--soft-brown); border:none; border-radius:12px; font-family:'Tajawal',sans-serif; font-size:15px; font-weight:600; cursor:pointer; display:none; margin-bottom:0; }
+.timer-result-card { background:linear-gradient(135deg,var(--sage-pale),#faf8f3); border-radius:16px; padding:20px; margin-top:16px; display:none; border:1.5px solid var(--sage-light); }
+.timer-result-title { font-size:15px; font-weight:700; color:var(--sage); margin-bottom:12px; }
+
 </style>
 </head>
 <body>
@@ -375,6 +404,11 @@ textarea { resize:vertical; min-height:80px; }
       <div style="flex:1"><div class="home-card-title">مفكرة النوم</div><div class="home-card-sub">تسجيل النوم اليومي</div></div>
       <span style="color:var(--sage-light);font-size:24px">‹</span>
     </div>
+    <div class="home-card" onclick="goToTimer()">
+      <div class="home-card-icon">⏱️</div>
+      <div style="flex:1"><div class="home-card-title">مؤقت النوم</div><div class="home-card-sub">سجّلي نوم طفلك بضغطة زر</div></div>
+      <span style="color:var(--sage-light);font-size:24px">‹</span>
+    </div>
   </div>
 </div>
 
@@ -404,6 +438,62 @@ textarea { resize:vertical; min-height:80px; }
     <div id="clientsList"></div>
   </div>
 </div>
+
+
+<!-- TIMER SCREEN -->
+<div id="timerScreen" class="screen">
+  <div class="timer-header">
+    <button class="header-back" onclick="goHome()">← رئيسية</button>
+    <div class="header-info">
+      <div class="header-name" id="timerHeaderName">-</div>
+      <div class="header-code" id="timerHeaderCode">-</div>
+    </div>
+    <button class="header-logout" onclick="logout()">خروج</button>
+  </div>
+  <div class="timer-body">
+    <div class="timer-hero-card">
+      <div class="timer-hero-title">⏱️ مؤقت النوم</div>
+      <div class="timer-hero-sub">اضغطي "نام" لما ينام طفلك، و"صحى" لما يستيقظ</div>
+    </div>
+
+    <div class="timer-card">
+      <div class="timer-section-title">📅 اختاري اليوم</div>
+      <div class="day-chips" id="timerDayChips"></div>
+    </div>
+
+    <div class="timer-card">
+      <div class="timer-section-title">😴 نوع النوم</div>
+      <div class="sleep-types">
+        <button class="sleep-type-btn active" onclick="selectTimerType('nap1')" id="st_nap1">
+          <span class="type-icon">☀️</span>قيلولة 1
+        </button>
+        <button class="sleep-type-btn" onclick="selectTimerType('nap2')" id="st_nap2">
+          <span class="type-icon">🌤️</span>قيلولة 2
+        </button>
+        <button class="sleep-type-btn" onclick="selectTimerType('nap3')" id="st_nap3">
+          <span class="type-icon">⛅</span>قيلولة 3
+        </button>
+        <button class="sleep-type-btn" onclick="selectTimerType('night')" id="st_night">
+          <span class="type-icon">🌙</span>نوم الليل
+        </button>
+      </div>
+    </div>
+
+    <div class="timer-action-card">
+      <div class="timer-status-text" id="timerStatusText">اختاري اليوم ونوع النوم ثم اضغطي نام 👇</div>
+      <div class="timer-time-display" id="timerTimeDisplay"></div>
+      <button class="btn-timer-sleep" id="btnTimerSleep" onclick="timerPressSleep()">😴 نام</button>
+      <button class="btn-timer-wake" id="btnTimerWake" onclick="timerPressWake()">☀️ صحى</button>
+      <button class="btn-timer-cancel" id="btnTimerCancel" onclick="timerPressCancel()">إلغاء</button>
+      <div class="timer-result-card" id="timerResultCard">
+        <div class="timer-result-title">✅ تم الحفظ في مفكرة النوم</div>
+        <div id="timerResultRows"></div>
+        <div style="font-size:12px;color:var(--soft-brown);margin-top:10px;">يمكنك إكمال باقي التفاصيل في مفكرة النوم</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- ADD CLIENT MODAL -->
 <div class="modal-overlay" id="addClientModal">
@@ -719,7 +809,157 @@ async function showTab(tabId){
 }
 
 // EXPOSE
-Object.assign(window,{switchLoginTab,loginMother,loginConsultant,logout,showTab,saveDay,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,selectDays,viewClientAsync,confirmDeleteAsync,exportAllToExcel,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToProfile,viewSurveyAsync});
+
+// ===== TIMER =====
+let timerDay = 1;
+let timerType = 'nap1';
+let timerSleepTime = null;
+let timerInterval = null;
+
+function goToTimer() {
+  showScreen('timerScreen');
+  document.getElementById('timerHeaderName').textContent = user.name;
+  document.getElementById('timerHeaderCode').textContent = 'كود: ' + user.code;
+  buildTimerDayChips();
+  restoreTimerState();
+}
+
+function buildTimerDayChips() {
+  const el = document.getElementById('timerDayChips');
+  if (!el) return;
+  el.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'day-chip-t' + (i === timerDay ? ' active' : '');
+    btn.textContent = 'اليوم ' + i;
+    btn.onclick = () => {
+      timerDay = i;
+      document.querySelectorAll('.day-chip-t').forEach((c, idx) => c.classList.toggle('active', idx + 1 === i));
+    };
+    el.appendChild(btn);
+  }
+}
+
+function selectTimerType(type) {
+  timerType = type;
+  ['nap1','nap2','nap3','night'].forEach(t => {
+    const el = document.getElementById('st_' + t);
+    if (el) el.classList.toggle('active', t === type);
+  });
+}
+
+function restoreTimerState() {
+  const saved = localStorage.getItem('dada_timer_' + user.code);
+  if (saved) {
+    const data = JSON.parse(saved);
+    timerSleepTime = data.sleepTime;
+    timerDay = data.day || 1;
+    timerType = data.type || 'nap1';
+    buildTimerDayChips();
+    selectTimerType(timerType);
+    showTimerSleeping();
+    startTimerTick();
+  }
+}
+
+function timerPressSleep() {
+  timerSleepTime = new Date().toISOString();
+  localStorage.setItem('dada_timer_' + user.code, JSON.stringify({
+    sleepTime: timerSleepTime, day: timerDay, type: timerType
+  }));
+  showTimerSleeping();
+  startTimerTick();
+}
+
+function showTimerSleeping() {
+  document.getElementById('btnTimerSleep').style.display = 'none';
+  document.getElementById('btnTimerWake').style.display = 'block';
+  document.getElementById('btnTimerCancel').style.display = 'block';
+  document.getElementById('timerResultCard').style.display = 'none';
+  const t = new Date(timerSleepTime);
+  document.getElementById('timerStatusText').textContent = 'نام الساعة: ' + t.toLocaleTimeString('ar', {hour:'2-digit', minute:'2-digit'});
+}
+
+function startTimerTick() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!timerSleepTime) return;
+    const diff = Math.floor((Date.now() - new Date(timerSleepTime)) / 1000);
+    const h = Math.floor(diff / 3600);
+    const m = Math.floor((diff % 3600) / 60);
+    const s = diff % 60;
+    const el = document.getElementById('timerTimeDisplay');
+    if (el) el.textContent = (h > 0 ? h + ':' : '') + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }, 1000);
+}
+
+async function timerPressWake() {
+  if (!timerSleepTime) return;
+  const wakeTime = new Date();
+  const sleepTime = new Date(timerSleepTime);
+  const durationMins = Math.round((wakeTime - sleepTime) / 60000);
+
+  const sleepStr = sleepTime.toLocaleTimeString('ar', {hour:'2-digit', minute:'2-digit', hour12:false});
+  const wakeStr = wakeTime.toLocaleTimeString('ar', {hour:'2-digit', minute:'2-digit', hour12:false});
+
+  // حفظ في Firebase
+  const code = user.code;
+  const day = timerDay;
+  const existing = await loadData(code, day) || {};
+
+  let updates = {};
+  if (timerType === 'night') {
+    updates = { bedtime: sleepStr, sleepDuration: String(durationMins) };
+  } else {
+    const n = timerType.replace('nap','');
+    updates[`nap${n}Start`] = sleepStr;
+    updates[`nap${n}End`] = wakeStr;
+    updates[`nap${n}Duration`] = String(durationMins);
+  }
+
+  const merged = { ...existing, ...updates, savedAt: new Date().toISOString() };
+  await saveData(code, day, merged);
+
+  // عرض النتيجة
+  clearInterval(timerInterval);
+  timerInterval = null;
+  localStorage.removeItem('dada_timer_' + code);
+  timerSleepTime = null;
+
+  document.getElementById('btnTimerSleep').style.display = 'block';
+  document.getElementById('btnTimerWake').style.display = 'none';
+  document.getElementById('btnTimerCancel').style.display = 'none';
+  document.getElementById('timerTimeDisplay').textContent = '';
+  document.getElementById('timerStatusText').textContent = 'اختاري اليوم ونوع النوم ثم اضغطي نام 👇';
+
+  const typeNames = {nap1:'القيلولة الأولى', nap2:'القيلولة الثانية', nap3:'القيلولة الثالثة', night:'نوم الليل'};
+  const h = Math.floor(durationMins/60), m = durationMins%60;
+  const durStr = h>0 ? h+'س '+m+'د' : m+' دقيقة';
+
+  document.getElementById('timerResultRows').innerHTML =
+    `<div class="summary-row"><span class="summary-key">📅 اليوم</span><span class="summary-val">اليوم ${day}</span></div>` +
+    `<div class="summary-row"><span class="summary-key">نوع النوم</span><span class="summary-val">${typeNames[timerType]}</span></div>` +
+    `<div class="summary-row"><span class="summary-key">😴 نام الساعة</span><span class="summary-val">${sleepStr}</span></div>` +
+    `<div class="summary-row"><span class="summary-key">☀️ صحى الساعة</span><span class="summary-val">${wakeStr}</span></div>` +
+    `<div class="summary-row"><span class="summary-key">⏱ المدة</span><span class="summary-val">${durStr}</span></div>`;
+
+  document.getElementById('timerResultCard').style.display = 'block';
+}
+
+function timerPressCancel() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  timerSleepTime = null;
+  if (user?.code) localStorage.removeItem('dada_timer_' + user.code);
+  document.getElementById('btnTimerSleep').style.display = 'block';
+  document.getElementById('btnTimerWake').style.display = 'none';
+  document.getElementById('btnTimerCancel').style.display = 'none';
+  document.getElementById('timerTimeDisplay').textContent = '';
+  document.getElementById('timerStatusText').textContent = 'اختاري اليوم ونوع النوم ثم اضغطي نام 👇';
+  document.getElementById('timerResultCard').style.display = 'none';
+}
+
+Object.assign(window,{goToTimer,selectTimerType,timerPressSleep,timerPressWake,timerPressCancel,switchLoginTab,loginMother,loginConsultant,logout,showTab,saveDay,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,selectDays,viewClientAsync,confirmDeleteAsync,exportAllToExcel,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToProfile,viewSurveyAsync});
 </script>
 </body>
 </html>
