@@ -82,6 +82,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--cream);color:var(--warm-b
 .form-group{margin-bottom:14px;}
 label{display:block;font-size:13px;font-weight:600;color:var(--soft-brown);margin-bottom:5px;}
 input[type="text"],input[type="number"],input[type="time"],input[type="date"],input[type="tel"],select,textarea{width:100%;padding:11px 10px;border:1.5px solid #e8e0d5;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--warm-brown);background:var(--cream);outline:none;transition:border-color 0.2s;direction:rtl;box-sizing:border-box;}
+input[type="time"]{direction:ltr;text-align:center;padding:11px 6px;}
 input:focus,select:focus,textarea:focus{border-color:var(--sage);}
 textarea{resize:vertical;min-height:76px;}
 .btn-primary{width:100%;padding:13px;background:var(--sage);color:white;border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:4px;}
@@ -248,6 +249,7 @@ textarea{resize:vertical;min-height:76px;}
           <div class="radio-option" onclick="selectRadio('rg_backToSleep',this,'غيره')">غيره</div>
         </div>
       </div>
+      <div class="form-group" id="backToSleepOtherGroup" style="display:none"><label>اشرحي ما يساعده على العودة للنوم</label><input type="text" id="s_backToSleepOther" placeholder="اكتبي هنا..."></div>
       <div class="form-group"><label>هل يستيقظ باكراً قبل 6 صباحاً؟</label>
         <div class="radio-group" id="rg_earlyMorning">
           <div class="radio-option" onclick="selectRadio('rg_earlyMorning',this,'لا')">لا</div>
@@ -537,6 +539,8 @@ function selectRadio(gid,el,val){
   if(gid==='rg_health')$('healthDetail').style.display=val==='نعم'?'block':'none';
   if(gid==='rg_routine')$('routineDetail').style.display=val==='نعم'?'block':'none';
   if(gid==='rg_sleepPlace')$('sleepPlaceOther').style.display=val==='غير ذلك'?'block':'none';
+  if(gid==='rg_sleepHow'){const g=$('sleepHowOtherGroup');if(g)g.style.display=val==='غيره'?'block':'none';}
+  if(gid==='rg_backToSleep'){const g=$('backToSleepOtherGroup');if(g)g.style.display=val==='غيره'?'block':'none';}
 }
 const getR=gid=>{const s=document.querySelector(`#${gid} .radio-option.selected`);return s?s.textContent.trim():'';};
 async function submitSurvey(){
@@ -548,8 +552,8 @@ async function submitSurvey(){
       birth:gv('s_birth'),prevConsult:getR('rg_prevConsult'),development:gv('s_development'),
       routine:getR('rg_routine'),routineDetail:gv('s_routine'),
       sleepPlace:getR('rg_sleepPlace')==='غير ذلك'?(gv('s_sleepPlaceOther')||'غير ذلك'):getR('rg_sleepPlace'),
-      sleepHow:getR('rg_sleepHow'),
-      nightWakings:gv('s_nightWakings'),backToSleep:getR('rg_backToSleep'),earlyMorning:getR('rg_earlyMorning'),
+      sleepHow:getR('rg_sleepHow')==='غيره'?(gv('s_sleepHowOther')||'غيره'):getR('rg_sleepHow'),
+      nightWakings:gv('s_nightWakings'),backToSleep:getR('rg_backToSleep')==='غيره'?(gv('s_backToSleepOther')||'غيره'):getR('rg_backToSleep'),earlyMorning:getR('rg_earlyMorning'),
       napsCount:gv('s_napsCount'),napsRoutine:gv('s_napsRoutine'),mood:getR('rg_mood'),pacifier:getR('rg_pacifier'),
       recentEvent:gv('s_recentEvent'),personality:getR('rg_personality'),personalityDesc:gv('s_personalityDesc'),feeding:getR('rg_feeding'),feedCount:gv('s_feedCount'),
       appetite:getR('rg_appetite'),problems:gv('s_problems'),tried:gv('s_tried'),goal:gv('s_goal'),extra:gv('s_extra')
@@ -659,10 +663,8 @@ function napBlock(n,prefix=''){
       <button type="button" class="timer-btn timer-stop" onclick="stopNapTimer(${n},'${prefix}')">⏹ صحى</button>
     </div>
     <div class="timer-result" id="timer${pid}Result"></div>
-    <div class="row-2">
-      <div class="form-group"><label>وقت النوم</label><input type="time" id="nap${pid}Start" onchange="calcNapDuration(${n},'${prefix}')"></div>
-      <div class="form-group"><label>وقت الاستيقاظ</label><input type="time" id="nap${pid}End" onchange="calcNapDuration(${n},'${prefix}')"></div>
-    </div>
+    <div class="form-group"><label>وقت النوم</label><input type="time" id="nap${pid}Start" onchange="calcNapDuration(${n},'${prefix}')"></div>
+    <div class="form-group"><label>وقت الاستيقاظ</label><input type="time" id="nap${pid}End" onchange="calcNapDuration(${n},'${prefix}')"></div>
     <div class="nap-duration-display" id="nap${pid}DurationDisplay"></div>
     <input type="hidden" id="nap${pid}Duration">
     <div class="form-group" style="margin-bottom:0;margin-top:8px"><label>استغراق حتى نام (دقائق)</label><input type="number" id="nap${pid}Onset" placeholder="مثال: 10" min="0" max="120"></div>
