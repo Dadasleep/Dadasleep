@@ -677,7 +677,8 @@ function napBlock(n,prefix=''){
 }
 
 function buildLogHTML(mode){
-  return `<div class="section-card"><div class="section-title">☀️ وقت الاستيقاظ الصباحي</div>
+  return `<div class="day-selector" id="daySelector"></div>
+  <div class="section-card"><div class="section-title">☀️ وقت الاستيقاظ الصباحي</div>
     <div class="form-group"><label>وقت الاستيقاظ</label><input type="time" id="wakeTime"></div>
   </div>
   <div class="section-card"><div class="section-title">😴 القيلولات</div>${napBlock(1)}${napBlock(2)}${napBlock(3)}</div>
