@@ -137,6 +137,13 @@ textarea{resize:vertical;min-height:76px;}
 .week-sub{font-size:12px;color:var(--soft-brown);margin-bottom:14px;}
 .consultant-notes-card{background:linear-gradient(135deg,#eef4ee,#faf8f3);border:2px solid var(--sage-light);border-radius:var(--radius);padding:18px;margin-bottom:16px;}
 .consultant-notes-title{font-size:15px;font-weight:700;color:var(--sage);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+
+.nap-timer-row{display:flex;gap:8px;margin-bottom:10px;}
+.timer-btn{flex:1;padding:10px;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.timer-start{background:var(--sage-pale);color:var(--sage);}
+.timer-stop{background:#fdeaea;color:#c0392b;}
+.timer-result{font-size:13px;font-weight:700;color:var(--sage);background:white;border-radius:8px;padding:5px 10px;text-align:center;display:none;margin-bottom:6px;}
+.timer-result.visible{display:block;}
 </style>
 </head>
 <body>
@@ -157,11 +164,7 @@ textarea{resize:vertical;min-height:76px;}
       <button class="btn-primary" onclick="loginMother()">دخول</button>
     </div>
     <div id="consultantLoginForm" style="display:none">
-      <div style="background:linear-gradient(135deg,var(--sage),#7a9a7a);border-radius:14px;padding:16px;margin-bottom:16px;color:white;text-align:center">
-        <div style="font-size:32px;margin-bottom:6px">👩‍💼</div>
-        <div style="font-size:16px;font-weight:700">بوابة المستشارة</div>
-      </div>
-      <div class="form-group"><label>كلمة المرور</label><input type="password" id="consultantPassword" placeholder="كلمة مرور المستشارة"></div>
+      <div class="form-group"><label>كلمة المرور</label><input type="text" id="consultantPassword" placeholder="كلمة مرور المستشارة 👩‍💼"></div>
       <button class="btn-primary" onclick="loginConsultant()">دخول كمستشارة</button>
     </div>
   </div>
@@ -234,10 +237,7 @@ textarea{resize:vertical;min-height:76px;}
           <div class="radio-option" onclick="selectRadio('rg_sleepHow',this,'غيره')">غيره</div>
         </div>
       </div>
-      <div class="row-2">
-        <div class="form-group"><label>وقت بداية الروتين</label><input type="time" id="s_bedtimeStart"></div>
-        <div class="form-group"><label>استغراق النوم (د)</label><input type="number" id="s_sleepOnset" placeholder="20" min="0" max="180"></div>
-      </div>
+
       <div class="form-group"><label>كم مرة يستيقظ في الليل؟</label><input type="number" id="s_nightWakings" placeholder="مثال: 3" min="0" max="20"></div>
       <div class="form-group"><label>ما الذي يساعده على العودة للنوم؟</label>
         <div class="radio-group" id="rg_backToSleep">
@@ -257,6 +257,15 @@ textarea{resize:vertical;min-height:76px;}
       </div>
       <div class="form-group"><label>كم عدد القيلولات في النهار؟</label><input type="number" id="s_napsCount" placeholder="مثال: 2" min="0" max="5"></div>
       <div class="form-group"><label>هل القيلولات منتظمة؟</label><textarea id="s_napsRoutine" placeholder="اشرحي..."></textarea></div>
+      <div class="form-group"><label>كيف ترين طباع طفلك؟</label>
+        <div class="radio-group" id="rg_personality">
+          <div class="radio-option" onclick="selectRadio('rg_personality',this,'حساس')">حساس</div>
+          <div class="radio-option" onclick="selectRadio('rg_personality',this,'هادئ')">هادئ</div>
+          <div class="radio-option" onclick="selectRadio('rg_personality',this,'اجتماعي')">اجتماعي</div>
+          <div class="radio-option" onclick="selectRadio('rg_personality',this,'حركي')">حركي</div>
+        </div>
+      </div>
+      <div class="form-group"><label>اشرحي طباع طفلك بشكل مبسط</label><textarea id="s_personalityDesc" placeholder="اشرحي..."></textarea></div>
       <div class="form-group"><label>مزاج طفلك خلال اليوم</label>
         <div class="radio-group" id="rg_mood">
           <div class="radio-option" onclick="selectRadio('rg_mood',this,'مبسوط ومرتاح')">مبسوط ومرتاح</div>
@@ -318,7 +327,6 @@ textarea{resize:vertical;min-height:76px;}
 <div id="homeScreen" class="screen">
   <div class="home-hero">
     <button class="home-logout" onclick="logout()">خروج</button>
-    <div class="home-hero-logo">DaDa</div>
     <div class="home-welcome" id="homeWelcome">أهلاً! 💛</div>
     <div class="home-sub">استشارات نوم الأطفال</div>
   </div>
@@ -540,10 +548,10 @@ async function submitSurvey(){
       birth:gv('s_birth'),prevConsult:getR('rg_prevConsult'),development:gv('s_development'),
       routine:getR('rg_routine'),routineDetail:gv('s_routine'),
       sleepPlace:getR('rg_sleepPlace')==='غير ذلك'?(gv('s_sleepPlaceOther')||'غير ذلك'):getR('rg_sleepPlace'),
-      sleepHow:getR('rg_sleepHow'),bedtimeStart:gv('s_bedtimeStart'),sleepOnset:gv('s_sleepOnset'),
+      sleepHow:getR('rg_sleepHow'),
       nightWakings:gv('s_nightWakings'),backToSleep:getR('rg_backToSleep'),earlyMorning:getR('rg_earlyMorning'),
       napsCount:gv('s_napsCount'),napsRoutine:gv('s_napsRoutine'),mood:getR('rg_mood'),pacifier:getR('rg_pacifier'),
-      recentEvent:gv('s_recentEvent'),feeding:getR('rg_feeding'),feedCount:gv('s_feedCount'),
+      recentEvent:gv('s_recentEvent'),personality:getR('rg_personality'),personalityDesc:gv('s_personalityDesc'),feeding:getR('rg_feeding'),feedCount:gv('s_feedCount'),
       appetite:getR('rg_appetite'),problems:gv('s_problems'),tried:gv('s_tried'),goal:gv('s_goal'),extra:gv('s_extra')
     });
     showHome();
@@ -646,7 +654,12 @@ function napBlock(n,prefix=''){
   const pid=prefix+n;
   return `<div class="nap-item">
     <div class="nap-header">القيلولة ${names[n-1]}</div>
-    <div class="nap-row">
+    <div class="nap-timer-row">
+      <button type="button" class="timer-btn timer-start" onclick="startNapTimer(${n},'${prefix}')">▶ بدأ النوم</button>
+      <button type="button" class="timer-btn timer-stop" onclick="stopNapTimer(${n},'${prefix}')">⏹ صحى</button>
+    </div>
+    <div class="timer-result" id="timer${pid}Result"></div>
+    <div class="row-2">
       <div class="form-group"><label>وقت النوم</label><input type="time" id="nap${pid}Start" onchange="calcNapDuration(${n},'${prefix}')"></div>
       <div class="form-group"><label>وقت الاستيقاظ</label><input type="time" id="nap${pid}End" onchange="calcNapDuration(${n},'${prefix}')"></div>
     </div>
@@ -861,7 +874,7 @@ async function viewClientFollowup(code,name){
 
 async function viewSurveyAsync(code,name){
   const s=await loadSurvey(code);if(!s){alert('لا يوجد استبيان لهذه العميلة بعد');return;}
-  const fields=[['اسم الأم',s.momName],['رقم التواصل',s.phone],['اسم الطفل',s.babyName],['تاريخ الميلاد',s.birthDate],['أطفال آخرون',s.otherKids],['تفاصيل',s.otherKidsDetail],['مشاكل صحية',s.health],['تفاصيل صحية',s.healthDetail],['الولادة',s.birth],['مستشارة سابقة',s.prevConsult],['التطور',s.development],['روتين ثابت',s.routine],['تفاصيل الروتين',s.routineDetail],['مكان النوم',s.sleepPlace],['كيف ينام',s.sleepHow],['بداية الروتين',s.bedtimeStart],['استغراق(د)',s.sleepOnset],['استيقاظات ليلية',s.nightWakings],['العودة للنوم',s.backToSleep],['يستيقظ باكراً',s.earlyMorning],['عدد القيلولات',s.napsCount],['انتظام القيلولات',s.napsRoutine],['مزاج اليوم',s.mood],['المصاصة',s.pacifier],['حدث مؤخراً',s.recentEvent],['نوع الرضاعة',s.feeding],['عدد الرضعات',s.feedCount],['الشهية',s.appetite],['مشاكل النوم',s.problems],['جربت قبل',s.tried],['الهدف',s.goal],['تفاصيل إضافية',s.extra]];
+  const fields=[['اسم الأم',s.momName],['رقم التواصل',s.phone],['اسم الطفل',s.babyName],['تاريخ الميلاد',s.birthDate],['أطفال آخرون',s.otherKids],['تفاصيل',s.otherKidsDetail],['مشاكل صحية',s.health],['تفاصيل صحية',s.healthDetail],['الولادة',s.birth],['مستشارة سابقة',s.prevConsult],['التطور',s.development],['روتين ثابت',s.routine],['تفاصيل الروتين',s.routineDetail],['مكان النوم',s.sleepPlace],['كيف ينام',s.sleepHow],['بداية الروتين',s.bedtimeStart],['استغراق(د)',s.sleepOnset],['استيقاظات ليلية',s.nightWakings],['العودة للنوم',s.backToSleep],['يستيقظ باكراً',s.earlyMorning],['عدد القيلولات',s.napsCount],['انتظام القيلولات',s.napsRoutine],['مزاج اليوم',s.mood],['المصاصة',s.pacifier],['حدث مؤخراً',s.recentEvent],['طباع الطفل',s.personality],['وصف الطباع',s.personalityDesc],['نوع الرضاعة',s.feeding],['عدد الرضعات',s.feedCount],['الشهية',s.appetite],['مشاكل النوم',s.problems],['جربت قبل',s.tried],['الهدف',s.goal],['تفاصيل إضافية',s.extra]];
   $('tab-log').innerHTML=`<div style="padding:8px 0"><h2 style="font-size:17px;font-weight:700;color:var(--warm-brown);margin-bottom:14px">📋 ملف ${name}</h2><div class="section-card">${fields.filter(f=>f[1]).map(f=>rowHTML(f[0],f[1])).join('')}</div></div>`;
   showTab('log');
 }
@@ -940,8 +953,37 @@ async function showTab(tabId){
   if(tabId==='clients')await renderClients();
 }
 
+
+// TIMER
+const timerStarts = {};
+function startNapTimer(n, prefix){
+  const key = prefix+n;
+  timerStarts[key] = new Date();
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const startEl = $('nap'+key+'Start');
+  if(startEl) startEl.value = hh+':'+mm;
+  const res = $('timer'+key+'Result');
+  if(res){ res.textContent = '⏱ بدأ: '+hh+':'+mm; res.classList.add('visible'); }
+}
+function stopNapTimer(n, prefix){
+  const key = prefix+n;
+  if(!timerStarts[key]){ alert('اضغطي بدأ أولاً'); return; }
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const endEl = $('nap'+key+'End');
+  if(endEl) endEl.value = hh+':'+mm;
+  calcNapDuration(n, prefix);
+  const mins = Math.round((now - timerStarts[key]) / 60000);
+  const res = $('timer'+key+'Result');
+  if(res){ res.textContent = '✅ انتهى: '+hh+':'+mm+' — '+mins+' دقيقة'; }
+  delete timerStarts[key];
+}
+
 // EXPOSE
-Object.assign(window,{switchLoginTab,loginMother,loginConsultant,logout,showTab,showFollowupTab,saveDay,saveFuDay,saveConsultantNotes,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,selectDays,viewClientAsync,viewClientFollowup,confirmDeleteAsync,exportAllToCSV,exportClientCSV,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToFollowup,goToProfile,viewSurveyAsync});
+Object.assign(window,{startNapTimer,stopNapTimer,switchLoginTab,loginMother,loginConsultant,logout,showTab,showFollowupTab,saveDay,saveFuDay,saveConsultantNotes,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,selectDays,viewClientAsync,viewClientFollowup,confirmDeleteAsync,exportAllToCSV,exportClientCSV,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToFollowup,goToProfile,viewSurveyAsync});
 </script>
 </body>
 </html>
