@@ -82,7 +82,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--cream);color:var(--warm-b
 .form-group{margin-bottom:14px;}
 label{display:block;font-size:13px;font-weight:600;color:var(--soft-brown);margin-bottom:5px;}
 input[type="text"],input[type="number"],input[type="time"],input[type="date"],input[type="tel"],select,textarea{width:100%;padding:11px 10px;border:1.5px solid #e8e0d5;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--warm-brown);background:var(--cream);outline:none;transition:border-color 0.2s;direction:rtl;box-sizing:border-box;}
-input[type="time"]{direction:ltr;text-align:center;padding:11px 6px;}
+input[type="time"]{direction:ltr;text-align:center;padding:11px 10px;font-size:15px;}
 input:focus,select:focus,textarea:focus{border-color:var(--sage);}
 textarea{resize:vertical;min-height:76px;}
 .btn-primary{width:100%;padding:13px;background:var(--sage);color:white;border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:4px;}
@@ -139,11 +139,13 @@ textarea{resize:vertical;min-height:76px;}
 .consultant-notes-card{background:linear-gradient(135deg,#eef4ee,#faf8f3);border:2px solid var(--sage-light);border-radius:var(--radius);padding:18px;margin-bottom:16px;}
 .consultant-notes-title{font-size:15px;font-weight:700;color:var(--sage);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
 
-.nap-timer-row{display:flex;gap:8px;margin-bottom:10px;}
-.timer-btn{flex:1;padding:10px;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;}
-.timer-start{background:var(--sage-pale);color:var(--sage);}
-.timer-stop{background:#fdeaea;color:#c0392b;}
-.timer-result{font-size:13px;font-weight:700;color:var(--sage);background:white;border-radius:8px;padding:5px 10px;text-align:center;display:none;margin-bottom:6px;}
+.nap-timer-wrap{background:linear-gradient(135deg,#f5f9f5,#eef4ee);border:1.5px solid var(--sage-light);border-radius:14px;padding:12px;margin-bottom:10px;}
+.nap-timer-title{font-size:11px;font-weight:600;color:var(--soft-brown);text-align:center;margin-bottom:8px;letter-spacing:1px;}
+.nap-timer-row{display:flex;gap:8px;margin-bottom:0;}
+.timer-btn{flex:1;padding:10px;border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.timer-start{background:var(--sage-pale);color:var(--sage);border:1.5px solid var(--sage-light);}
+.timer-stop{background:var(--sage-pale);color:var(--sage);border:1.5px solid var(--sage-light);}
+.timer-result{font-size:12px;font-weight:700;color:var(--sage);background:white;border-radius:8px;padding:5px 10px;text-align:center;display:none;margin-top:8px;}
 .timer-result.visible{display:block;}
 </style>
 </head>
@@ -658,11 +660,14 @@ function napBlock(n,prefix=''){
   const pid=prefix+n;
   return `<div class="nap-item">
     <div class="nap-header">القيلولة ${names[n-1]}</div>
-    <div class="nap-timer-row">
-      <button type="button" class="timer-btn timer-start" onclick="startNapTimer(${n},'${prefix}')">▶ بدأ النوم</button>
-      <button type="button" class="timer-btn timer-stop" onclick="stopNapTimer(${n},'${prefix}')">⏹ صحى</button>
+    <div class="nap-timer-wrap">
+      <div class="nap-timer-title">مؤقت النوم</div>
+      <div class="nap-timer-row">
+        <button type="button" class="timer-btn timer-start" onclick="startNapTimer(${n},'${prefix}')">😴 بدأ النوم</button>
+        <button type="button" class="timer-btn timer-stop" onclick="stopNapTimer(${n},'${prefix}')">⏰ صحى</button>
+      </div>
+      <div class="timer-result" id="timer${pid}Result"></div>
     </div>
-    <div class="timer-result" id="timer${pid}Result"></div>
     <div class="form-group"><label>وقت النوم</label><input type="time" id="nap${pid}Start" onchange="calcNapDuration(${n},'${prefix}')"></div>
     <div class="form-group"><label>وقت الاستيقاظ</label><input type="time" id="nap${pid}End" onchange="calcNapDuration(${n},'${prefix}')"></div>
     <div class="nap-duration-display" id="nap${pid}DurationDisplay"></div>
