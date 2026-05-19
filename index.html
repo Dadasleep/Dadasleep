@@ -904,9 +904,31 @@ function dataToRow(name,code,type,day,data){
 }
 async function exportClientCSV(code,name){
   const rows=[csvHeader()];
-  const clientDays=5;
-  for(let d=1;d<=clientDays;d++){const data=await loadData(code,d);if(data)rows.push(dataToRow(name,code,'مفكرة',d,data));}
-  for(let d=1;d<=14;d++){const data=await loadFollowup(code,d);if(data)rows.push(dataToRow(name,code,d<=7?'متابعة أ1':'متابعة أ2',d,data));}
+  // Get actual client days from clients list
+  const allClients=await getClients();
+  const client=allClients.find(c=>c.code===code);
+  const clientDays=client?.days||5;
+  // Diary data
+  for(let d=1;d<=clientDays;d++){
+    const data=await loadData(code,d);
+    if(data && Object.keys(data).length>3) rows.push(dataToRow(name,code,'مفكرة',d,data));
+  }
+  // Followup data
+  for(let d=1;d<=14;d++){
+    const data=await loadFollowup(code,d);
+    if(data && Object.keys(data).length>3) rows.push(dataToRow(name,code,d<=7?'متابعة أ1':'متابعة أ2',d,data));
+  }
+  // Add survey data as first row
+  const survey=await loadSurvey(code);
+  if(survey){
+    const surveyRow=[name,code,'استبيان','',
+      survey.momName||'',survey.phone||'',survey.babyName||'',survey.birthDate||'',
+      survey.sleepPlace||'',survey.sleepHow||'',survey.nightWakings||'',
+      survey.feeding||'',survey.problems||'',survey.goal||'','','','','','','','','','','','',''
+    ];
+    rows.splice(1,0,surveyRow);
+  }
+  if(rows.length<=1){alert('لا توجد بيانات محفوظة لهذه العميلة');return;}
   downloadCSV(rows,`${name}_${code}.csv`);
 }
 async function exportAllToCSV(){
@@ -915,8 +937,8 @@ async function exportAllToCSV(){
     const clients=await getClients();if(!clients.length){alert('لا توجد عميلات');return;}
     const rows=[csvHeader()];
     for(const c of clients){
-      for(let d=1;d<=5;d++){const data=await loadData(c.code,d);if(data)rows.push(dataToRow(c.name,c.code,'مفكرة',d,data));}
-      for(let d=1;d<=14;d++){const data=await loadFollowup(c.code,d);if(data)rows.push(dataToRow(c.name,c.code,d<=7?'متابعة أ1':'متابعة أ2',d,data));}
+      for(let d=1;d<=(c.days||5);d++){const data=await loadData(c.code,d);if(data&&Object.keys(data).length>3)rows.push(dataToRow(c.name,c.code,'مفكرة',d,data));}
+      for(let d=1;d<=14;d++){const data=await loadFollowup(c.code,d);if(data&&Object.keys(data).length>3)rows.push(dataToRow(c.name,c.code,d<=7?'متابعة أ1':'متابعة أ2',d,data));}
     }
     downloadCSV(rows,`DaDa_كل_البيانات_${new Date().toLocaleDateString('ar')}.csv`);
   }catch{alert('حدث خطأ');}
