@@ -587,12 +587,14 @@ function goToDiary(){
 // FOLLOWUP
 async function goToFollowup(){
   const code=viewingClient?.code||user?.code;
+  console.log('📂 [goToFollowup] code:', code, '| isConsultant:', user?.isConsultant, '| viewingClient:', viewingClient?.code);
   showScreen('followupScreen');
   $('fuHeaderName').textContent=viewingClient?.name||user?.name;
   // تحميل عدد أسابيع المتابعة
   const clients=await getClients();
   const clientData=clients.find(c=>c.code===code);
   currentFollowupWeeks=clientData?.followupWeeks||2;
+  console.log('📂 [goToFollowup] followupWeeks من Firestore:', clientData?.followupWeeks, '→ سيُستخدم:', currentFollowupWeeks, '| كامل clientData:', JSON.stringify(clientData));
   // بناء الشاشة
   buildFollowupScreen();
   for(let w=1;w<=currentFollowupWeeks;w++) buildFuDaySelector(w);
@@ -620,13 +622,18 @@ function buildFuDaySelector(week){
 // الدالة المركزية: تختار يوم، تبني الـ form، تحمّل البيانات
 async function fuSelectDay(week,dayInWeek,globalDay,btn){
   fuWeek=week;fuDay=globalDay;
+  console.log(`🔵 [fuSelectDay] أسبوع:${week} | يوم في الأسبوع:${dayInWeek} | اليوم الإجمالي:${globalDay} | fuDay الآن:${fuDay}`);
   document.querySelectorAll(`#fuDaySelectorW${week} .day-chip`).forEach((c,i)=>c.classList.toggle('active',i+1===dayInWeek));
   const logEl=$(`fuLogW${week}`);
   if(logEl){
     logEl.innerHTML=buildLogHTML('followup');
     const code=viewingClient?.code||user?.code;
+    console.log(`🔵 [fuSelectDay] يحمّل من Firestore: collection=followup | document=${code}_fu${globalDay}`);
     const d=(await loadFollowup(code,globalDay))||{};
+    console.log(`🔵 [fuSelectDay] البيانات المحمّلة:`, Object.keys(d).length > 0 ? d : 'فارغ');
     loadFormData(d);
+  } else {
+    console.warn(`⚠️ [fuSelectDay] fuLogW${week} غير موجود في DOM!`);
   }
 }
 
@@ -681,9 +688,16 @@ function buildFollowupScreen(){
 async function addFollowupWeek(){
   const code=viewingClient?.code||user?.code;if(!code)return;
   const newWeeks=currentFollowupWeeks+1;
+  console.log(`➕ [addFollowupWeek] code:${code} | من ${currentFollowupWeeks} أسابيع إلى ${newWeeks}`);
   const clients=await getClients();
   const client=clients.find(c=>c.code===code);
-  if(client) await saveClient(code,{...client,followupWeeks:newWeeks});
+  console.log(`➕ [addFollowupWeek] العميلة في Firestore:`, client ? JSON.stringify(client) : '❌ غير موجودة');
+  if(client){
+    await saveClient(code,{...client,followupWeeks:newWeeks});
+    console.log(`✅ [addFollowupWeek] حُفظ followupWeeks:${newWeeks} في clients/${code}`);
+  } else {
+    console.warn(`⚠️ [addFollowupWeek] العميلة ${code} غير موجودة — لن يُحفظ`);
+  }
   currentFollowupWeeks=newWeeks;
   buildFollowupScreen();
   for(let w=1;w<=currentFollowupWeeks;w++) buildFuDaySelector(w);
@@ -877,13 +891,22 @@ async function saveDay(){
 
 async function saveFuDay(){
   const code=viewingClient?.code||user?.code;if(!code)return;
+  console.log(`💾 [saveFuDay] بدأ الحفظ | fuWeek:${fuWeek} | fuDay:${fuDay} | code:${code}`);
+  console.log(`💾 [saveFuDay] سيحفظ في: collection=followup | document=${code}_fu${fuDay}`);
   const btn=document.querySelector(`#fuLogW${fuWeek} .btn-primary`)||document.querySelector('#followupScreen .btn-primary');
+  console.log(`💾 [saveFuDay] الزر المستخدم:`, btn ? `#fuLogW${fuWeek} .btn-primary` : 'btn-primary عام');
   if(btn){btn.textContent='جاري الحفظ…';btn.disabled=true;}
   try{
-    await saveFollowup(code,fuDay,getFormData());
+    const formData=getFormData();
+    console.log(`💾 [saveFuDay] البيانات:`, formData);
+    await saveFollowup(code,fuDay,formData);
+    console.log(`✅ [saveFuDay] نجح الحفظ في Firestore: followup/${code}_fu${fuDay}`);
     if(btn){btn.textContent='✅ تم الحفظ!';btn.style.background='#7a9a7a';}
     setTimeout(()=>{if(btn){btn.textContent='💾 حفظ اليوم';btn.style.background='';btn.disabled=false;}},2000);
-  }catch{alert('حدث خطأ');if(btn){btn.textContent='💾 حفظ اليوم';btn.disabled=false;}}
+  }catch(err){
+    console.error(`❌ [saveFuDay] فشل الحفظ:`, err);
+    alert('حدث خطأ');if(btn){btn.textContent='💾 حفظ اليوم';btn.disabled=false;}
+  }
 }
 
 // SUMMARY
