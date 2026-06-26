@@ -853,15 +853,7 @@ async function renderFollowupSummary(){
 function napBlock(n,prefix=''){
   const names=['الأولى','الثانية','الثالثة'];
   const pid=prefix+n;
-  const moods=[
-    {v:'نعسان جدًا',e:'😴'},
-    {v:'هادئ',e:'🙂'},
-    {v:'مبسوط',e:'😊'},
-    {v:'نشيط جدًا',e:'⚡'},
-    {v:'متضايق',e:'😣'},
-    {v:'يبكي',e:'😭'},
-    {v:'أخرى',e:'✏️'}
-  ];
+  const moods=['نعسان','هادئ','مبسوط','نشيط','متضايق','يبكي','أخرى'];
   return `<div class="nap-item">
     <div class="nap-header">القيلولة ${names[n-1]}</div>
     <div class="nap-timer-wrap">
@@ -879,9 +871,9 @@ function napBlock(n,prefix=''){
     <div class="form-group" style="margin-bottom:0;margin-top:8px"><label>استغراق حتى نام (دقائق)</label><input type="number" id="nap${pid}Onset" placeholder="مثال: 10" min="0" max="120"></div>
     <div class="form-group" style="margin-top:10px;margin-bottom:0">
       <label style="font-size:13px;font-weight:600;color:var(--warm-brown)">كيف كانت فترة الاستيقاظ قبل هذه القيلولة؟</label>
-      <div class="mood-chips" id="nap${pid}MoodWrap">${moods.map(m=>`<button type="button" class="mood-chip" data-mood="${m.v}" onclick="selectNapMood('${pid}','${m.v}',this)">${m.e} ${m.v}</button>`).join('')}</div>
+      <div class="mood-chips" id="nap${pid}MoodWrap">${moods.map(m=>`<button type="button" class="mood-chip" data-mood="${m}" onclick="selectNapMood('${pid}','${m}',this)">${m}</button>`).join('')}</div>
       <input type="hidden" id="nap${pid}Mood">
-      <div id="nap${pid}MoodOtherWrap" style="display:none;margin-top:6px"><input type="text" id="nap${pid}MoodOther" placeholder="اشرحي أكثر (اختياري)" style="width:100%;border:1.5px solid var(--sage-light);border-radius:8px;padding:7px 10px;font-family:'Tajawal',sans-serif;font-size:13px"></div>
+      <div style="margin-top:8px"><label style="font-size:12px;color:var(--soft-brown)">اشرحي أكثر</label><input type="text" id="nap${pid}MoodOther" placeholder="اختياري..." style="width:100%;border:1.5px solid var(--sage-light);border-radius:8px;padding:7px 10px;font-family:'Tajawal',sans-serif;font-size:13px;margin-top:4px"></div>
     </div>
   </div>`;
 }
@@ -891,8 +883,6 @@ function selectNapMood(pid,val,btn){
   btn.classList.add('active');
   const hid=document.getElementById(`nap${pid}Mood`);
   if(hid)hid.value=val;
-  const otherWrap=document.getElementById(`nap${pid}MoodOtherWrap`);
-  if(otherWrap)otherWrap.style.display=val==='أخرى'?'block':'none';
 }
 
 function buildLogHTML(mode){
@@ -980,8 +970,6 @@ function loadFormData(d,container){
       if(moodHid)moodHid.value=moodVal;
       const moodChips=ct.querySelectorAll?ct.querySelectorAll(`#nap${n}MoodWrap .mood-chip`):document.querySelectorAll(`#nap${n}MoodWrap .mood-chip`);
       moodChips.forEach(b=>{b.classList.toggle('active',b.dataset.mood===moodVal);});
-      const otherWrap=ct.querySelector?ct.querySelector(`#nap${n}MoodOtherWrap`):$(`nap${n}MoodOtherWrap`);
-      if(otherWrap)otherWrap.style.display=moodVal==='أخرى'?'block':'none';
     }
     const moodOtherVal=d[`nap${n}MoodOther`];
     if(moodOtherVal){
