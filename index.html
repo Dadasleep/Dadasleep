@@ -589,58 +589,66 @@ async function goToFollowup(){
   const code=viewingClient?.code||user?.code;
   showScreen('followupScreen');
   $('fuHeaderName').textContent=viewingClient?.name||user?.name;
-  fuWeek=1;fuDay=1;
   // تحميل عدد أسابيع المتابعة
   const clients=await getClients();
   const clientData=clients.find(c=>c.code===code);
   currentFollowupWeeks=clientData?.followupWeeks||2;
-  // بناء الشاشة أولاً (تُنشئ العناصر في DOM)
+  // بناء الشاشة
   buildFollowupScreen();
-  // ثم بناء selectors بعد إنشاء العناصر
   for(let w=1;w<=currentFollowupWeeks;w++) buildFuDaySelector(w);
-  $('fuLogW1').innerHTML=buildLogHTML('followup');
-  await loadFuDayForm(1);
+  // تحميل الملاحظات
   const notes=await loadConsNotes(code);
   if($('consultantNotes'))$('consultantNotes').value=notes||'';
+  // الانتقال ليوم 1 أسبوع 1
   showFollowupTab('week1');
+  await fuSelectDay(1,1,1);
 }
 
 function buildFuDaySelector(week){
   const sel=$(`fuDaySelectorW${week}`);if(!sel)return;sel.innerHTML='';
   for(let i=1;i<=7;i++){
     const globalDay=(week-1)*7+i;
-    const c=document.createElement('button');c.className='day-chip'+(week===1&&i===1?' active':'');
-    c.textContent=`اليوم ${globalDay}`;c.dataset.week=week;c.dataset.day=i;
-    c.onclick=()=>switchFuDay(week,i,globalDay,c);
+    const c=document.createElement('button');
+    c.className='day-chip'+(week===1&&i===1?' active':'');
+    c.textContent=`اليوم ${globalDay}`;
+    c.dataset.week=week;c.dataset.day=i;
+    c.onclick=()=>fuSelectDay(week,i,globalDay,c);
     sel.appendChild(c);
   }
 }
 
-// بناء شاشة المتابعة الديناميكية بالأسابيع
+// الدالة المركزية: تختار يوم، تبني الـ form، تحمّل البيانات
+async function fuSelectDay(week,dayInWeek,globalDay,btn){
+  fuWeek=week;fuDay=globalDay;
+  document.querySelectorAll(`#fuDaySelectorW${week} .day-chip`).forEach((c,i)=>c.classList.toggle('active',i+1===dayInWeek));
+  const logEl=$(`fuLogW${week}`);
+  if(logEl){
+    logEl.innerHTML=buildLogHTML('followup');
+    const code=viewingClient?.code||user?.code;
+    const d=(await loadFollowup(code,globalDay))||{};
+    loadFormData(d);
+  }
+}
+
+// بناء شاشة المتابعة الديناميكية
 function buildFollowupScreen(){
   const navTabs=$('followupNavTabs');
   const isConsultant=user?.isConsultant;
-  
-  // بناء تبويبات الأسابيع
   let tabsHTML='';
   for(let w=1;w<=currentFollowupWeeks;w++){
-    tabsHTML+=`<button class="nav-tab${w===1?' active':''}" onclick="showFollowupTab('week${w}')">📊 أسبوع ${w}</button>`;
+    tabsHTML+=`<button class="nav-tab" onclick="showFollowupTab('week${w}')">📊 أسبوع ${w}</button>`;
   }
   tabsHTML+=`<button class="nav-tab" onclick="showFollowupTab('notes')">💬 ملاحظات</button>`;
   tabsHTML+=`<button class="nav-tab" onclick="showFollowupTab('fusummary')">📈 ملخص</button>`;
   if(navTabs) navTabs.innerHTML=tabsHTML;
-  
-  // إزالة المحتوى الديناميكي القديم
   const followupScreen=$('followupScreen');
-  followupScreen.querySelectorAll('.tab-content,.fu-dynamic').forEach(el=>el.remove());
-  
-  // إضافة محتوى لكل أسبوع
+  followupScreen.querySelectorAll('.tab-content').forEach(el=>el.remove());
+  const weekNames=['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن'];
   for(let w=1;w<=currentFollowupWeeks;w++){
-    const startDay=(w-1)*7+1, endDay=w*7;
-    const weekNames=['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن'];
+    const startDay=(w-1)*7+1,endDay=w*7;
     const weekDiv=document.createElement('div');
     weekDiv.id=`fu-week${w}`;
-    weekDiv.className=`tab-content${w===1?' active':''}`;
+    weekDiv.className='tab-content';
     weekDiv.innerHTML=`
       <div class="week-section">
         <div class="week-title">📊 الأسبوع ${weekNames[w-1]||w}</div>
@@ -650,8 +658,6 @@ function buildFollowupScreen(){
       <div id="fuLogW${w}"></div>`;
     followupScreen.appendChild(weekDiv);
   }
-  
-  // قسم الملاحظات
   const notesDiv=document.createElement('div');
   notesDiv.id='fu-notes';
   notesDiv.className='tab-content';
@@ -662,57 +668,36 @@ function buildFollowupScreen(){
       <button class="btn-primary" onclick="saveConsultantNotes()">💾 حفظ الملاحظات</button>
     </div>
     <div id="consultantNotesSaved" class="alert alert-success" style="display:none">✅ تم حفظ الملاحظات</div>
-    ${isConsultant?`<div style="margin-top:16px"><button class="btn-primary" style="background:var(--accent)" onclick="addFollowupWeek()">➕ إضافة أسبوع متابعة</button></div>`:''}`;
+    ${isConsultant?'<div style="margin-top:16px"><button class="btn-primary" style="background:var(--accent)" onclick="addFollowupWeek()">➕ إضافة أسبوع متابعة</button></div>':''}`;
   followupScreen.appendChild(notesDiv);
-  
-  // قسم الملخص
   const summaryDiv=document.createElement('div');
   summaryDiv.id='fu-fusummary';
   summaryDiv.className='tab-content';
-  summaryDiv.innerHTML=`<div class="summary-grid" id="fuSummaryStats"></div><div id="fuSummaryDays"></div>`;
+  summaryDiv.innerHTML='<div class="summary-grid" id="fuSummaryStats"></div><div id="fuSummaryDays"></div>';
   followupScreen.appendChild(summaryDiv);
 }
 
-// إضافة أسبوع متابعة (للمستشارة فقط)
+// إضافة أسبوع متابعة — للمستشارة فقط
 async function addFollowupWeek(){
   const code=viewingClient?.code||user?.code;if(!code)return;
-  currentFollowupWeeks++;
-  // حفظ في Firestore
+  const newWeeks=currentFollowupWeeks+1;
   const clients=await getClients();
   const client=clients.find(c=>c.code===code);
-  if(client){
-    await saveClient(code,{...client,followupWeeks:currentFollowupWeeks});
-  }
-  // إعادة بناء الشاشة بالكامل
+  if(client) await saveClient(code,{...client,followupWeeks:newWeeks});
+  currentFollowupWeeks=newWeeks;
   buildFollowupScreen();
-  // بناء selectors لكل الأسابيع
   for(let w=1;w<=currentFollowupWeeks;w++) buildFuDaySelector(w);
-  // تحميل الملاحظات مجدداً
   const notes=await loadConsNotes(code);
   if($('consultantNotes'))$('consultantNotes').value=notes||'';
-  // الانتقال للأسبوع الجديد
   showFollowupTab(`week${currentFollowupWeeks}`);
+  await fuSelectDay(currentFollowupWeeks,1,(currentFollowupWeeks-1)*7+1);
 }
 
-async function switchFuDay(week,dayInWeek,globalDay,btn){
-  fuWeek=week;fuDay=globalDay;
-  document.querySelectorAll(`#fuDaySelectorW${week} .day-chip`).forEach(c=>c.classList.toggle('active',c===btn));
-  const logEl=$(`fuLogW${week}`);
-  if(logEl){logEl.innerHTML=buildLogHTML('followup');await loadFuDayForm(globalDay);}
-}
-
-async function loadFuDayForm(globalDay){
-  const code=viewingClient?.code||user?.code;
-  const d=(await loadFollowup(code,globalDay))||{};
-  loadFormData(d);
-}
-
+// تبديل تبويبات المتابعة — لا تبني الـ form
 function showFollowupTab(tabId){
   document.querySelectorAll('#followupScreen .tab-content').forEach(t=>t.classList.remove('active'));
   $(`fu-${tabId}`)?.classList.add('active');
-  // تفعيل التبويب المناسب
-  const allTabs=document.querySelectorAll('#followupNavTabs .nav-tab');
-  allTabs.forEach(t=>{
+  document.querySelectorAll('#followupNavTabs .nav-tab').forEach(t=>{
     t.classList.remove('active');
     const txt=t.textContent.trim();
     if(tabId.startsWith('week')){
@@ -724,20 +709,6 @@ function showFollowupTab(tabId){
       t.classList.add('active');
     }
   });
-  // عند فتح تبويب أسبوع: حمّل اليوم الأول منه تلقائياً
-  if(tabId.startsWith('week')){
-    const wNum=parseInt(tabId.replace('week',''));
-    const firstGlobalDay=(wNum-1)*7+1;
-    fuWeek=wNum;fuDay=firstGlobalDay;
-    const logEl=$(`fuLogW${wNum}`);
-    if(logEl){
-      logEl.innerHTML=buildLogHTML('followup');
-      loadFuDayForm(firstGlobalDay);
-    }
-    // تفعيل اليوم الأول في الـ selector
-    const chips=document.querySelectorAll(`#fuDaySelectorW${wNum} .day-chip`);
-    chips.forEach((c,i)=>c.classList.toggle('active',i===0));
-  }
   if(tabId==='fusummary') renderFollowupSummary();
 }
 
@@ -760,9 +731,7 @@ async function renderFollowupSummary(){
     tWake+=parseInt(d.nightWakings)||0;
     const nw=all[day+1]?.wakeTime||null,ni=nightMins(d.bedtime,nw);if(ni>0)tNightM+=ni;
     const nc=[d.nap1Start,d.nap2Start,d.nap3Start].filter(Boolean).length;
-    const weekNum=Math.ceil(day/7);
-    const weekLabel=`أسبوع ${weekNum}`;
-    dHtml.push(buildDaySummaryCard(day,d,nm,nc,ni,all[day+1]?.wakeTime,weekLabel));
+    dHtml.push(buildDaySummaryCard(day,d,nm,nc,ni,all[day+1]?.wakeTime,`أسبوع ${Math.ceil(day/7)}`));
   }
   const avgW=logged?(tWake/logged).toFixed(1):'-',avgN=logged?Math.round(tNapM/logged):0;
   const nDays=Object.keys(all).filter(d=>all[d]?.bedtime&&all[parseInt(d)+1]?.wakeTime).length;
@@ -771,6 +740,7 @@ async function renderFollowupSummary(){
   if(ss)ss.innerHTML=statCards(logged,totalDays,avgW,avgN,avgNi);
   if(sd)sd.innerHTML=dHtml.join('')||emptyState();
 }
+
 
 // LOG HTML
 function napBlock(n,prefix=''){
@@ -1131,7 +1101,7 @@ function stopNapTimer(n, prefix){
 }
 
 // EXPOSE
-Object.assign(window,{startNapTimer,stopNapTimer,switchLoginTab,loginMother,loginConsultant,logout,showTab,showFollowupTab,saveDay,saveFuDay,saveConsultantNotes,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,selectDays,viewClientAsync,viewClientFollowup,confirmDeleteAsync,exportAllToCSV,exportClientCSV,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToFollowup,goToProfile,viewSurveyAsync,addFollowupWeek,updateAgeDisplay,formatTime12});
+Object.assign(window,{startNapTimer,stopNapTimer,switchLoginTab,loginMother,loginConsultant,logout,showTab,showFollowupTab,saveDay,saveFuDay,saveConsultantNotes,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,selectDays,viewClientAsync,viewClientFollowup,confirmDeleteAsync,exportAllToCSV,exportClientCSV,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToFollowup,goToProfile,viewSurveyAsync,addFollowupWeek,updateAgeDisplay,formatTime12,fuSelectDay});
 </script>
 </body>
 </html>
