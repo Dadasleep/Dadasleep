@@ -725,17 +725,13 @@ async function switchDay(day,code){currentDay=day;document.querySelectorAll('.da
 
 // مولّد بلوك حالة الطفل
 function moodBlock(prefix) {
+  var opts = ['نعسان جداً 😴','متضايق 😣','مبسوط 😊','يبكي 😢','هادئ 😌','نشيط 🌟','أخرى'];
+  var btns = opts.map(function(o){
+    return '<div class="radio-option" data-prefix="' + prefix + '" onclick="selectMood(this)">' + o + '</div>';
+  }).join('');
   return '<div class="form-group" style="margin-top:10px">'+
     '<label style="color:var(--sage);font-weight:700">💭 كيف كان الطفل خلال هذه الفترة؟</label>'+
-    '<div class="radio-group" id="mood_rg_'+prefix+'" style="margin-top:8px">'+
-      '<div class="radio-option" onclick="selectMood(''+prefix+'',this)">نعسان جداً 😴</div>'+
-      '<div class="radio-option" onclick="selectMood(''+prefix+'',this)">متضايق 😣</div>'+
-      '<div class="radio-option" onclick="selectMood(''+prefix+'',this)">مبسوط 😊</div>'+
-      '<div class="radio-option" onclick="selectMood(''+prefix+'',this)">يبكي 😢</div>'+
-      '<div class="radio-option" onclick="selectMood(''+prefix+'',this)">هادئ 😌</div>'+
-      '<div class="radio-option" onclick="selectMood(''+prefix+'',this)">نشيط 🌟</div>'+
-      '<div class="radio-option" onclick="selectMood(''+prefix+'',this)">أخرى</div>'+
-    '</div>'+
+    '<div class="radio-group" id="mood_rg_'+prefix+'" style="margin-top:8px">'+btns+'</div>'+
     '<input type="hidden" id="mood_'+prefix+'" value="">'+
     '<div class="form-group" style="margin-top:8px;margin-bottom:0">'+
       '<label>اشرحي أكثر (اختياري)</label>'+
@@ -744,11 +740,13 @@ function moodBlock(prefix) {
   '</div>';
 }
 
-function selectMood(prefix, el) {
-  document.querySelectorAll('#mood_rg_'+prefix+' .radio-option').forEach(o=>o.classList.remove('selected'));
+function selectMood(el) {
+  var prefix = el.getAttribute('data-prefix');
+  if(!prefix) return;
+  document.querySelectorAll('#mood_rg_'+prefix+' .radio-option').forEach(function(o){o.classList.remove('selected');});
   el.classList.add('selected');
-  const val = el.textContent.trim();
-  const hidden = document.getElementById('mood_'+prefix);
+  var val = el.textContent.trim();
+  var hidden = document.getElementById('mood_'+prefix);
   if(hidden) hidden.value = val;
 }
 
