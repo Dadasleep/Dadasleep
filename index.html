@@ -698,7 +698,7 @@ async function enterConsultantApp() {
 
 // NAP
 function calcNapDuration(n) {
-  const s=$(` nap${n}Start`)?.value, e=$(`nap${n}End`)?.value;
+  const s=$(`nap${n}Start`)?.value, e=$(`nap${n}End`)?.value;
   const disp=$(`nap${n}DurationDisplay`), hid=$(`nap${n}Duration`);
   if(!s||!e||!disp||!hid) return;
   const mins=(parseInt(e.split(':')[0])*60+parseInt(e.split(':')[1]))-(parseInt(s.split(':')[0])*60+parseInt(s.split(':')[1]));
