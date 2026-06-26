@@ -875,7 +875,10 @@ async function renderSummary(code){
   const nDays=Object.keys(all).filter(d=>all[d]?.bedtime&&all[parseInt(d)+1]?.wakeTime).length;
   const avgNi=nDays?Math.round(tNightM/nDays):0;
   const ss=$('summaryStats'),sd=$('summaryDays');
-  if(ss) ss.innerHTML='<div class="stat-card"><div class="stat-icon">📅</div><div class="stat-value">'+logged+'/'+totalDays+'</div><div class="stat-label">أيام مسجلة</div></div>'<div class="stat-card"><div class="stat-icon">🌜</div><div class="stat-value">${avgW}</div><div class="stat-label">متوسط الاستيقاظ</div></div><div class="stat-card"><div class="stat-icon">😴</div><div class="stat-value">${minsToH(avgN)}</div><div class="stat-label">متوسط نوم النهار</div></div><div class="stat-card"><div class="stat-icon">🌙</div><div class="stat-value">${minsToH(avgNi)}</div><div class="stat-label">متوسط نوم الليل</div></div>`;
+  if(ss) ss.innerHTML='<div class="stat-card"><div class="stat-icon">📅</div><div class="stat-value">'+logged+'/'+totalDays+'</div><div class="stat-label">أيام مسجلة</div></div>'+
+    '<div class="stat-card"><div class="stat-icon">🌜</div><div class="stat-value">'+avgW+'</div><div class="stat-label">متوسط الاستيقاظ</div></div>'+
+    '<div class="stat-card"><div class="stat-icon">😴</div><div class="stat-value">'+minsToH(avgN)+'</div><div class="stat-label">متوسط نوم النهار</div></div>'+
+    '<div class="stat-card"><div class="stat-icon">🌙</div><div class="stat-value">'+minsToH(avgNi)+'</div><div class="stat-label">متوسط نوم الليل</div></div>';
   const analysis=isC&&logged>0?`<div class="day-summary-card" style="border:2px solid var(--sage);background:linear-gradient(135deg,#f0f7f0,#faf8f3)"><div class="day-summary-title" style="color:var(--sage)">📊 تحليل المستشارة</div>${rowHTML('😴 متوسط نوم النهار',minsToH(avgN))}${rowHTML('🌙 متوسط نوم الليل',minsToH(avgNi))}${rowHTML('🕐 متوسط النوم الكامل',minsToH(avgN+avgNi))}${rowHTML('🌜 متوسط الاستيقاظ',`${avgW} مرات`)}</div>`:'';
   if(sd) sd.innerHTML=analysis+(dHtml.join('')||'<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">لا توجد بيانات بعد</div></div>');
 }
