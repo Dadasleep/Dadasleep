@@ -524,8 +524,7 @@ async function loginMother(){
     const clients=await getClients();
     if(!clients.find(c=>c.code===code)) await saveClient(code,{name,code,days:5,createdAt:new Date().toISOString()});
     user={name,code,isConsultant:false};currentDay=1;
-    const survey=await loadSurvey(code);
-    survey?showHome():startSurvey();
+    showHome();
   }catch{showAlert($('loginAlert'),'حدث خطأ، تحققي من الاتصال');}
   finally{btn.textContent='دخول';btn.disabled=false;}
 }
@@ -684,16 +683,15 @@ async function addFollowupWeek(){
   if(client){
     await saveClient(code,{...client,followupWeeks:currentFollowupWeeks});
   }
-  // إعادة بناء الشاشة
+  // إعادة بناء الشاشة بالكامل
   buildFollowupScreen();
-  // بناء selectors للأسابيع
+  // بناء selectors لكل الأسابيع
   for(let w=1;w<=currentFollowupWeeks;w++) buildFuDaySelector(w);
-  $('fuLogW1').innerHTML=buildLogHTML('followup');
-  await loadFuDayForm(fuDay||1);
+  // تحميل الملاحظات مجدداً
   const notes=await loadConsNotes(code);
   if($('consultantNotes'))$('consultantNotes').value=notes||'';
+  // الانتقال للأسبوع الجديد
   showFollowupTab(`week${currentFollowupWeeks}`);
-  alert(`✅ تمت إضافة الأسبوع ${currentFollowupWeeks}. المتابعة الآن ${currentFollowupWeeks*7} يومًا.`);
 }
 
 async function switchFuDay(week,dayInWeek,globalDay,btn){
@@ -726,6 +724,20 @@ function showFollowupTab(tabId){
       t.classList.add('active');
     }
   });
+  // عند فتح تبويب أسبوع: حمّل اليوم الأول منه تلقائياً
+  if(tabId.startsWith('week')){
+    const wNum=parseInt(tabId.replace('week',''));
+    const firstGlobalDay=(wNum-1)*7+1;
+    fuWeek=wNum;fuDay=firstGlobalDay;
+    const logEl=$(`fuLogW${wNum}`);
+    if(logEl){
+      logEl.innerHTML=buildLogHTML('followup');
+      loadFuDayForm(firstGlobalDay);
+    }
+    // تفعيل اليوم الأول في الـ selector
+    const chips=document.querySelectorAll(`#fuDaySelectorW${wNum} .day-chip`);
+    chips.forEach((c,i)=>c.classList.toggle('active',i===0));
+  }
   if(tabId==='fusummary') renderFollowupSummary();
 }
 
