@@ -97,6 +97,14 @@ textarea{resize:vertical;min-height:76px;}
 .nap-row input[type="time"]{padding:9px 4px;font-size:13px;text-align:center;}
 .nap-row label{font-size:12px;}
 .nap-header{font-size:13px;font-weight:700;color:var(--sage);margin-bottom:8px;}
+.mood-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;}
+.mood-chip{background:var(--cream);border:1.5px solid var(--sage-light);border-radius:20px;padding:5px 11px;font-size:12px;font-family:'Tajawal',sans-serif;cursor:pointer;transition:all .2s;color:var(--warm-brown);}
+.mood-chip.active{background:var(--sage);color:#fff;border-color:var(--sage);}
+.week-notes-chip{background:var(--sage-pale)!important;border-color:var(--sage)!important;color:var(--sage)!important;font-weight:700;}
+.week-notes-chip.active{background:var(--sage)!important;color:#fff!important;}
+.week-notes-form{background:linear-gradient(135deg,#eef4ee,#faf8f3);border:2px solid var(--sage-light);border-radius:var(--radius);padding:16px;margin:12px 0;}
+.week-notes-title{font-size:15px;font-weight:700;color:var(--sage);margin-bottom:12px;}
+.week-notes-readonly{background:#faf8f3;border:1.5px solid var(--sage-light);border-radius:8px;padding:12px;font-size:14px;color:var(--warm-brown);min-height:80px;line-height:1.7;white-space:pre-wrap;}
 .nap-duration-display{font-size:13px;font-weight:700;color:var(--sage);background:white;border-radius:8px;padding:5px 10px;text-align:center;display:none;margin:4px 0;}
 .nap-duration-display.visible{display:block;}
 .day-selector{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;}
@@ -473,6 +481,8 @@ const loadFollowup = async(code,day)=>{
     return null;
   }
 };
+const saveWeekNotes = async(code,week,data)=> await setDoc(doc(db,'weekNotes',`${code}_w${week}`),{...data,code,week,savedAt:new Date().toISOString()});
+const loadWeekNotes = async(code,week)=>{ try{const s=await getDoc(doc(db,'weekNotes',`${code}_w${week}`));return s.exists()?s.data():null;}catch{return null;}};
 const saveConsNotes = async(code,notes)=> await setDoc(doc(db,'consultantNotes',code),{notes,code,savedAt:new Date().toISOString()});
 const loadConsNotes = async(code)=>{ try{const s=await getDoc(doc(db,'consultantNotes',code));return s.exists()?s.data().notes:'';}catch{return '';}};
 const getClients    = async()=>{ try{const s=await getDocs(collection(db,'clients'));return s.docs.map(d=>d.data());}catch{return[];}};
@@ -640,6 +650,13 @@ function buildFuDaySelector(week){
     c.onclick=()=>fuSelectDay(week,i,globalDay,c);
     sel.appendChild(c);
   }
+  // زر "ملاحظات المستشارة" بعد آخر يوم من كل أسبوع
+  const wBtn=document.createElement('button');
+  wBtn.className='day-chip week-notes-chip';
+  wBtn.textContent='📝 ملاحظات المستشارة';
+  wBtn.dataset.weeknotes=week;
+  wBtn.onclick=()=>fuSelectWeekNotes(week,wBtn);
+  sel.appendChild(wBtn);
 }
 
 // الدالة المركزية: تختار يوم، تبني الـ form، تحمّل البيانات
@@ -659,6 +676,48 @@ async function fuSelectDay(week,dayInWeek,globalDay,btn){
     console.warn(`⚠️ [fuSelectDay] fuLogW${week} غير موجود في DOM!`);
   }
 }
+
+async function fuSelectWeekNotes(week,btn){
+  fuWeek=week;fuDay=null; // لا يوم محدد — صفحة ملاحظات
+  // تفعيل الزر
+  document.querySelectorAll(`#fuDaySelectorW${week} .day-chip`).forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const logEl=$(`fuLogW${week}`);if(!logEl)return;
+  const code=viewingClient?.code||user?.code;
+  const isConsultant=user?.isConsultant;
+  const data=(await loadWeekNotes(code,week))||{};
+  if(isConsultant){
+    logEl.innerHTML=`<div class="week-notes-form">
+      <div class="week-notes-title">📝 ملاحظات المستشارة — بعد الأسبوع ${week}</div>
+      <div class="form-group"><label>ملاحظات وتقييم الأسبوع</label><textarea id="wn${week}Notes" placeholder="اكتبي ملاحظاتك وتقييمك لهذا الأسبوع..." style="min-height:100px">${data.notes||''}</textarea></div>
+      <div class="form-group"><label>خطة الأسبوع القادم</label><textarea id="wn${week}Plan" placeholder="خطة الأسبوع القادم..." style="min-height:80px">${data.plan||''}</textarea></div>
+      <div class="form-group"><label>توصيات وتعليمات إضافية</label><textarea id="wn${week}Tips" placeholder="توصيات أو تعليمات..." style="min-height:70px">${data.tips||''}</textarea></div>
+      <button class="btn-primary" onclick="saveWeekNotesForm(${week})">💾 حفظ الملاحظات</button>
+      <div id="wn${week}Saved" class="alert alert-success" style="display:none;margin-top:8px">✅ تم الحفظ</div>
+    </div>`;
+  } else {
+    const hasContent=data.notes||data.plan||data.tips;
+    logEl.innerHTML=`<div class="week-notes-form">
+      <div class="week-notes-title">📝 ملاحظات المستشارة — بعد الأسبوع ${week}</div>
+      ${hasContent?`
+        ${data.notes?`<div class="form-group"><label>ملاحظات وتقييم الأسبوع</label><div class="week-notes-readonly">${data.notes}</div></div>`:''}
+        ${data.plan?`<div class="form-group"><label>خطة الأسبوع القادم</label><div class="week-notes-readonly">${data.plan}</div></div>`:''}
+        ${data.tips?`<div class="form-group"><label>توصيات وتعليمات</label><div class="week-notes-readonly">${data.tips}</div></div>`:''}
+      `:'<div style="color:var(--soft-brown);text-align:center;padding:24px">لا توجد ملاحظات بعد من المستشارة</div>'}
+    </div>`;
+  }
+}
+
+async function saveWeekNotesForm(week){
+  const code=viewingClient?.code||user?.code;if(!code)return;
+  const notes=document.getElementById(`wn${week}Notes`)?.value||'';
+  const plan=document.getElementById(`wn${week}Plan`)?.value||'';
+  const tips=document.getElementById(`wn${week}Tips`)?.value||'';
+  await saveWeekNotes(code,week,{notes,plan,tips});
+  const saved=document.getElementById(`wn${week}Saved`);
+  if(saved){saved.style.display='block';setTimeout(()=>saved.style.display='none',3000);}
+}
+
 
 // بناء شاشة المتابعة الديناميكية
 function buildFollowupScreen(){
@@ -794,6 +853,15 @@ async function renderFollowupSummary(){
 function napBlock(n,prefix=''){
   const names=['الأولى','الثانية','الثالثة'];
   const pid=prefix+n;
+  const moods=[
+    {v:'نعسان جدًا',e:'😴'},
+    {v:'هادئ',e:'🙂'},
+    {v:'مبسوط',e:'😊'},
+    {v:'نشيط جدًا',e:'⚡'},
+    {v:'متضايق',e:'😣'},
+    {v:'يبكي',e:'😭'},
+    {v:'أخرى',e:'✏️'}
+  ];
   return `<div class="nap-item">
     <div class="nap-header">القيلولة ${names[n-1]}</div>
     <div class="nap-timer-wrap">
@@ -809,7 +877,22 @@ function napBlock(n,prefix=''){
     <div class="nap-duration-display" id="nap${pid}DurationDisplay"></div>
     <input type="hidden" id="nap${pid}Duration">
     <div class="form-group" style="margin-bottom:0;margin-top:8px"><label>استغراق حتى نام (دقائق)</label><input type="number" id="nap${pid}Onset" placeholder="مثال: 10" min="0" max="120"></div>
+    <div class="form-group" style="margin-top:10px;margin-bottom:0">
+      <label style="font-size:13px;font-weight:600;color:var(--warm-brown)">كيف كانت فترة الاستيقاظ قبل هذه القيلولة؟</label>
+      <div class="mood-chips" id="nap${pid}MoodWrap">${moods.map(m=>`<button type="button" class="mood-chip" data-mood="${m.v}" onclick="selectNapMood('${pid}','${m.v}',this)">${m.e} ${m.v}</button>`).join('')}</div>
+      <input type="hidden" id="nap${pid}Mood">
+      <div id="nap${pid}MoodOtherWrap" style="display:none;margin-top:6px"><input type="text" id="nap${pid}MoodOther" placeholder="اشرحي أكثر (اختياري)" style="width:100%;border:1.5px solid var(--sage-light);border-radius:8px;padding:7px 10px;font-family:'Tajawal',sans-serif;font-size:13px"></div>
+    </div>
   </div>`;
+}
+
+function selectNapMood(pid,val,btn){
+  document.querySelectorAll(`#nap${pid}MoodWrap .mood-chip`).forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const hid=document.getElementById(`nap${pid}Mood`);
+  if(hid)hid.value=val;
+  const otherWrap=document.getElementById(`nap${pid}MoodOtherWrap`);
+  if(otherWrap)otherWrap.style.display=val==='أخرى'?'block':'none';
 }
 
 function buildLogHTML(mode){
@@ -890,6 +973,21 @@ function loadFormData(d,container){
       if(h)h.value=d[`nap${n}Duration`];
       if(disp){disp.textContent=`⏱ المدة: ${d[`nap${n}Duration`]} دقيقة`;disp.classList.add('visible');}
     }
+    // تحميل حالة الطفل (mood)
+    const moodVal=d[`nap${n}Mood`];
+    if(moodVal){
+      const moodHid=ct.querySelector?ct.querySelector(`#nap${n}Mood`):$(`nap${n}Mood`);
+      if(moodHid)moodHid.value=moodVal;
+      const moodChips=ct.querySelectorAll?ct.querySelectorAll(`#nap${n}MoodWrap .mood-chip`):document.querySelectorAll(`#nap${n}MoodWrap .mood-chip`);
+      moodChips.forEach(b=>{b.classList.toggle('active',b.dataset.mood===moodVal);});
+      const otherWrap=ct.querySelector?ct.querySelector(`#nap${n}MoodOtherWrap`):$(`nap${n}MoodOtherWrap`);
+      if(otherWrap)otherWrap.style.display=moodVal==='أخرى'?'block':'none';
+    }
+    const moodOtherVal=d[`nap${n}MoodOther`];
+    if(moodOtherVal){
+      const otherInp=ct.querySelector?ct.querySelector(`#nap${n}MoodOther`):$(`nap${n}MoodOther`);
+      if(otherInp)otherInp.value=moodOtherVal;
+    }
   });
   const stdLocs=['سرير الطفل','سرير الأهل','أثناء الرضاعة','على الصدر','غير ذلك'];
   const locEl=ct.querySelector?ct.querySelector('#sleepLocation'):$('sleepLocation');
@@ -907,9 +1005,9 @@ function getFormData(container){
   const loc=qv('sleepLocation');
   return {
     wakeTime:qv('wakeTime'),
-    nap1Start:qv('nap1Start'),nap1End:qv('nap1End'),nap1Duration:qv('nap1Duration'),nap1Onset:qv('nap1Onset'),
-    nap2Start:qv('nap2Start'),nap2End:qv('nap2End'),nap2Duration:qv('nap2Duration'),nap2Onset:qv('nap2Onset'),
-    nap3Start:qv('nap3Start'),nap3End:qv('nap3End'),nap3Duration:qv('nap3Duration'),nap3Onset:qv('nap3Onset'),
+    nap1Start:qv('nap1Start'),nap1End:qv('nap1End'),nap1Duration:qv('nap1Duration'),nap1Onset:qv('nap1Onset'),nap1Mood:qv('nap1Mood'),nap1MoodOther:qv('nap1MoodOther'),
+    nap2Start:qv('nap2Start'),nap2End:qv('nap2End'),nap2Duration:qv('nap2Duration'),nap2Onset:qv('nap2Onset'),nap2Mood:qv('nap2Mood'),nap2MoodOther:qv('nap2MoodOther'),
+    nap3Start:qv('nap3Start'),nap3End:qv('nap3End'),nap3Duration:qv('nap3Duration'),nap3Onset:qv('nap3Onset'),nap3Mood:qv('nap3Mood'),nap3MoodOther:qv('nap3MoodOther'),
     routineStart:qv('routineStart'),bedtime:qv('bedtime'),
     sleepLocation:loc==='غير ذلك'?(qv('sleepLocationOther')||'غير ذلك'):loc,
     sleepDuration:qv('sleepDuration'),nightWakings:qv('nightWakings'),
@@ -1166,7 +1264,7 @@ function stopNapTimer(n, prefix){
 }
 
 // EXPOSE
-Object.assign(window,{startNapTimer,stopNapTimer,switchLoginTab,loginMother,loginConsultant,logout,showTab,showFollowupTab,saveDay,saveFuDay,saveConsultantNotes,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,selectDays,viewClientAsync,viewClientFollowup,confirmDeleteAsync,exportAllToCSV,exportClientCSV,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToFollowup,goToProfile,viewSurveyAsync,addFollowupWeek,updateAgeDisplay,formatTime12,fuSelectDay});
+Object.assign(window,{startNapTimer,stopNapTimer,switchLoginTab,loginMother,loginConsultant,logout,showTab,showFollowupTab,saveDay,saveFuDay,saveConsultantNotes,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,selectDays,viewClientAsync,viewClientFollowup,confirmDeleteAsync,exportAllToCSV,exportClientCSV,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToFollowup,goToProfile,viewSurveyAsync,addFollowupWeek,updateAgeDisplay,formatTime12,fuSelectDay,selectNapMood,fuSelectWeekNotes,saveWeekNotesForm});
 </script>
 </body>
 </html>
