@@ -697,9 +697,20 @@ function buildFollowupScreen(){
       <div class="form-group"><label>ملاحظات وتوجيهات</label><textarea id="consultantNotes" placeholder="اكتبي ملاحظاتك وتعديلاتك هنا..."></textarea></div>
       <button class="btn-primary" onclick="saveConsultantNotes()">💾 حفظ الملاحظات</button>
     </div>
-    <div id="consultantNotesSaved" class="alert alert-success" style="display:none">✅ تم حفظ الملاحظات</div>
-    ${isConsultant?'<div style="margin-top:16px"><button class="btn-primary" style="background:var(--accent)" onclick="addFollowupWeek()">➕ إضافة أسبوع متابعة</button></div>':''}`;
+    <div id="consultantNotesSaved" class="alert alert-success" style="display:none">✅ تم حفظ الملاحظات</div>`;
   followupScreen.appendChild(notesDiv);
+  // زر إضافة الأسبوع في كل تبويب أسبوع — للمستشارة فقط
+  if(isConsultant){
+    for(let w=1;w<=currentFollowupWeeks;w++){
+      const wDiv=document.getElementById('fu-week'+w);
+      if(wDiv){
+        const addBtn=document.createElement('div');
+        addBtn.style.cssText='padding:0 16px 20px';
+        addBtn.innerHTML='<button class="btn-primary" style="background:var(--accent);width:100%" onclick="addFollowupWeek()">➕ إضافة أسبوع متابعة</button>';
+        wDiv.appendChild(addBtn);
+      }
+    }
+  }
   const summaryDiv=document.createElement('div');
   summaryDiv.id='fu-fusummary';
   summaryDiv.className='tab-content';
