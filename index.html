@@ -448,8 +448,31 @@ const saveData      = async(code,day,data)=> await setDoc(doc(db,'sleepData',`${
 const loadData      = async(code,day)=>{ try{const s=await getDoc(doc(db,'sleepData',`${code}_day${day}`));return s.exists()?s.data():null;}catch{return null;}};
 const saveSurvey    = async(code,data)=> await setDoc(doc(db,'surveys',code),{...data,code,savedAt:new Date().toISOString()});
 const loadSurvey    = async(code)=>{ try{const s=await getDoc(doc(db,'surveys',code));return s.exists()?s.data():null;}catch{return null;}};
-const saveFollowup  = async(code,day,data)=> await setDoc(doc(db,'followup',`${code}_fu${day}`),{...data,code,day,updatedAt:new Date().toISOString()});
-const loadFollowup  = async(code,day)=>{ try{const s=await getDoc(doc(db,'followup',`${code}_fu${day}`));return s.exists()?s.data():null;}catch{return null;}};
+const saveFollowup = async(code,day,data)=>{
+  const docId=`${code}_fu${day}`;
+  console.log(`💾 saveFollowup → collection: followup | doc: ${docId} | fuWeek: ${fuWeek} | fuDay: ${fuDay}`);
+  console.log(`💾 saveFollowup → البيانات:`, JSON.stringify(data));
+  try{
+    await setDoc(doc(db,'followup',docId),{...data,code,day,updatedAt:new Date().toISOString()});
+    console.log(`✅ saveFollowup → نجح: followup/${docId}`);
+  }catch(err){
+    console.error(`❌ saveFollowup → فشل: followup/${docId}`, err);
+    throw err;
+  }
+};
+const loadFollowup = async(code,day)=>{
+  const docId=`${code}_fu${day}`;
+  console.log(`📖 loadFollowup → collection: followup | doc: ${docId}`);
+  try{
+    const s=await getDoc(doc(db,'followup',docId));
+    const result=s.exists()?s.data():null;
+    console.log(`📖 loadFollowup → ${docId}:`, result?'بيانات موجودة ✅':'فارغ ❌');
+    return result;
+  }catch(err){
+    console.error(`❌ loadFollowup → فشل: followup/${docId}`, err);
+    return null;
+  }
+};
 const saveConsNotes = async(code,notes)=> await setDoc(doc(db,'consultantNotes',code),{notes,code,savedAt:new Date().toISOString()});
 const loadConsNotes = async(code)=>{ try{const s=await getDoc(doc(db,'consultantNotes',code));return s.exists()?s.data().notes:'';}catch{return '';}};
 const getClients    = async()=>{ try{const s=await getDocs(collection(db,'clients'));return s.docs.map(d=>d.data());}catch{return[];}};
