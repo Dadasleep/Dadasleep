@@ -654,7 +654,7 @@ async function fuSelectDay(week,dayInWeek,globalDay,btn){
     console.log(`🔵 [fuSelectDay] يحمّل من Firestore: collection=followup | document=${code}_fu${globalDay}`);
     const d=(await loadFollowup(code,globalDay))||{};
     console.log(`🔵 [fuSelectDay] البيانات المحمّلة:`, Object.keys(d).length > 0 ? d : 'فارغ');
-    loadFormData(d);
+    loadFormData(d,logEl);
   } else {
     console.warn(`⚠️ [fuSelectDay] fuLogW${week} غير موجود في DOM!`);
   }
@@ -864,8 +864,9 @@ async function loadDayForm(day,code){
   loadFormData(d);
 }
 
-function loadFormData(d){
-  const sv=(id,v)=>{const el=$(id);if(el)el.value=v||'';};
+function loadFormData(d,container){
+  const ct=container||document;
+  const sv=(id,v)=>{const el=ct.getElementById?ct.getElementById(id):ct.querySelector('#'+id);if(el)el.value=v||'';};
   sv('wakeTime',d.wakeTime);sv('nap1Start',d.nap1Start);sv('nap1End',d.nap1End);sv('nap1Onset',d.nap1Onset);
   sv('nap2Start',d.nap2Start);sv('nap2End',d.nap2End);sv('nap2Onset',d.nap2Onset);
   sv('nap3Start',d.nap3Start);sv('nap3End',d.nap3End);sv('nap3Onset',d.nap3Onset);
@@ -873,30 +874,35 @@ function loadFormData(d){
   sv('nightWakings',d.nightWakings);sv('wakingTimes',d.wakingTimes);sv('wakingDetails',d.wakingDetails);sv('extraNotes',d.extraNotes);
   [1,2,3].forEach(n=>{
     if(d[`nap${n}Duration`]){
-      const h=$(`nap${n}Duration`),disp=$(`nap${n}DurationDisplay`);
+      const h=ct.querySelector?ct.querySelector(`#nap${n}Duration`):$(`nap${n}Duration`);
+      const disp=ct.querySelector?ct.querySelector(`#nap${n}DurationDisplay`):$(`nap${n}DurationDisplay`);
       if(h)h.value=d[`nap${n}Duration`];
       if(disp){disp.textContent=`⏱ المدة: ${d[`nap${n}Duration`]} دقيقة`;disp.classList.add('visible');}
     }
   });
   const stdLocs=['سرير الطفل','سرير الأهل','أثناء الرضاعة','على الصدر','غير ذلك'];
-  const locEl=$('sleepLocation'),otherGrp=$('otherLocationGroup'),otherEl=$('sleepLocationOther');
+  const locEl=ct.querySelector?ct.querySelector('#sleepLocation'):$('sleepLocation');
+  const otherGrp=ct.querySelector?ct.querySelector('#otherLocationGroup'):$('otherLocationGroup');
+  const otherEl=ct.querySelector?ct.querySelector('#sleepLocationOther'):$('sleepLocationOther');
   if(locEl&&d.sleepLocation){
     if(stdLocs.includes(d.sleepLocation)){locEl.value=d.sleepLocation;}
     else{locEl.value='غير ذلك';if(otherEl)otherEl.value=d.sleepLocation;if(otherGrp)otherGrp.style.display='block';}
   }
 }
 
-function getFormData(){
-  const loc=gv('sleepLocation');
+function getFormData(container){
+  const ct=container||document;
+  const qv=(id)=>{const el=ct.getElementById?ct.getElementById(id):ct.querySelector('#'+id);return el?el.value:'';};
+  const loc=qv('sleepLocation');
   return {
-    wakeTime:gv('wakeTime'),
-    nap1Start:gv('nap1Start'),nap1End:gv('nap1End'),nap1Duration:gv('nap1Duration'),nap1Onset:gv('nap1Onset'),
-    nap2Start:gv('nap2Start'),nap2End:gv('nap2End'),nap2Duration:gv('nap2Duration'),nap2Onset:gv('nap2Onset'),
-    nap3Start:gv('nap3Start'),nap3End:gv('nap3End'),nap3Duration:gv('nap3Duration'),nap3Onset:gv('nap3Onset'),
-    routineStart:gv('routineStart'),bedtime:gv('bedtime'),
-    sleepLocation:loc==='غير ذلك'?(gv('sleepLocationOther')||'غير ذلك'):loc,
-    sleepDuration:gv('sleepDuration'),nightWakings:gv('nightWakings'),
-    wakingTimes:gv('wakingTimes'),wakingDetails:gv('wakingDetails'),extraNotes:gv('extraNotes'),
+    wakeTime:qv('wakeTime'),
+    nap1Start:qv('nap1Start'),nap1End:qv('nap1End'),nap1Duration:qv('nap1Duration'),nap1Onset:qv('nap1Onset'),
+    nap2Start:qv('nap2Start'),nap2End:qv('nap2End'),nap2Duration:qv('nap2Duration'),nap2Onset:qv('nap2Onset'),
+    nap3Start:qv('nap3Start'),nap3End:qv('nap3End'),nap3Duration:qv('nap3Duration'),nap3Onset:qv('nap3Onset'),
+    routineStart:qv('routineStart'),bedtime:qv('bedtime'),
+    sleepLocation:loc==='غير ذلك'?(qv('sleepLocationOther')||'غير ذلك'):loc,
+    sleepDuration:qv('sleepDuration'),nightWakings:qv('nightWakings'),
+    wakingTimes:qv('wakingTimes'),wakingDetails:qv('wakingDetails'),extraNotes:qv('extraNotes'),
     savedAt:new Date().toISOString()
   };
 }
@@ -920,7 +926,9 @@ async function saveFuDay(){
   console.log(`💾 [saveFuDay] الزر المستخدم:`, btn ? `#fuLogW${fuWeek} .btn-primary` : 'btn-primary عام');
   if(btn){btn.textContent='جاري الحفظ…';btn.disabled=true;}
   try{
-    const formData=getFormData();
+    const fuContainer=document.querySelector(`#fuLogW${fuWeek}`);
+    const formData=getFormData(fuContainer);
+    console.log(`💾 [saveFuDay] container:`, fuContainer?`#fuLogW${fuWeek}`:'document (fallback)');
     console.log(`💾 [saveFuDay] البيانات:`, formData);
     await saveFollowup(code,fuDay,formData);
     console.log(`✅ [saveFuDay] نجح الحفظ في Firestore: followup/${code}_fu${fuDay}`);
