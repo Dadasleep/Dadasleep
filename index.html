@@ -17,7 +17,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;}
 body{font-family:'Tajawal',sans-serif;background:var(--cream);color:var(--warm-brown);direction:rtl;}
 .screen{display:none;position:fixed;top:0;right:0;left:0;bottom:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .screen.active{display:block;}
-#followupScreen.active{display:flex;flex-direction:column;}
+#followupScreen.active{display:flex;flex-direction:column;overflow:hidden;}
 #profileScreen.active{display:flex;flex-direction:column;}
 #storeScreen.active{display:flex;}
 
@@ -84,7 +84,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--cream);color:var(--warm-b
 .home-card-badge{background:var(--sage-pale);color:var(--sage);font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;margin-top:4px;display:inline-block;}
 
 /* APP */
-#appScreen{min-height:100vh;}
+#appScreen{min-height:100%;}
 #appScreen.active{display:flex;flex-direction:column;}
 .app-header{background:var(--white);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(90,74,58,0.07);position:sticky;top:0;z-index:100;}
 .header-back{background:var(--sage-pale);border:none;color:var(--sage);padding:8px 14px;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
@@ -92,10 +92,12 @@ body{font-family:'Tajawal',sans-serif;background:var(--cream);color:var(--warm-b
 .header-name{font-size:15px;font-weight:700;color:var(--warm-brown);}
 .header-code{font-size:11px;color:var(--soft-brown);}
 .header-logout{background:var(--sage-pale);border:none;color:var(--soft-brown);padding:8px 14px;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
-.nav-tabs{display:flex;background:var(--white);border-bottom:2px solid var(--sage-pale);padding:0 10px;overflow-x:auto;}
+.nav-tabs{display:flex;background:var(--white);border-bottom:2px solid var(--sage-pale);padding:0 10px;overflow-x:auto;flex-shrink:0;}
 .nav-tab{padding:12px 10px;border:none;background:transparent;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:600;color:var(--soft-brown);cursor:pointer;white-space:nowrap;border-bottom:2.5px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
 .nav-tab.active{color:var(--sage);border-bottom-color:var(--sage);}
 .tab-content{display:none;padding:16px;}
+#tab-log{padding-bottom:90px;}
+#followupScreen .tab-content.active{display:block;overflow-y:auto;flex:1;padding-bottom:80px;}
 .tab-content.active{display:block;}
 
 /* SHARED */
