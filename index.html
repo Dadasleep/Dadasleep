@@ -13,13 +13,17 @@
   --shadow:0 4px 24px rgba(90,74,58,0.10);--radius:18px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Tajawal',sans-serif;background:var(--cream);color:var(--warm-brown);min-height:100vh;direction:rtl;}
-.screen{display:none;}
+html,body{height:100%;margin:0;padding:0;overflow:hidden;}
+body{font-family:'Tajawal',sans-serif;background:var(--cream);color:var(--warm-brown);direction:rtl;}
+.screen{display:none;position:fixed;top:0;right:0;left:0;bottom:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .screen.active{display:block;}
+#followupScreen.active{display:flex;flex-direction:column;}
+#profileScreen.active{display:flex;flex-direction:column;}
+#storeScreen.active{display:flex;}
 
 /* LOGIN */
-#landingScreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px 32px;background:linear-gradient(160deg,#eef4ee 0%,#faf8f3 60%,#f5ede2 100%);}
-#landingScreen.active{display:flex;}
+#landingScreen{flex-direction:column;align-items:center;padding:32px 20px 32px;background:linear-gradient(160deg,#eef4ee 0%,#faf8f3 60%,#f5ede2 100%);}
+#landingScreen.active{display:flex;flex-direction:column;align-items:center;}
 .landing-welcome{font-size:19px;font-weight:700;color:var(--sage);text-align:center;margin:8px 0 4px;}
 .landing-subtitle{font-size:12px;font-weight:600;color:var(--soft-brown);letter-spacing:1px;text-align:center;margin-bottom:16px;line-height:1.9;}
 .landing-bio{background:var(--white);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;box-shadow:var(--shadow);font-size:14px;color:var(--warm-brown);line-height:1.75;text-align:center;}
@@ -31,10 +35,10 @@ body{font-family:'Tajawal',sans-serif;background:var(--cream);color:var(--warm-b
 .landing-card-icon{font-size:24px;flex-shrink:0;}
 .landing-card-title{font-size:16px;font-weight:700;color:var(--warm-brown);}
 .landing-card-sub{font-size:12px;color:var(--soft-brown);margin-top:2px;}
-.store-coming{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#eef4ee 0%,#faf8f3 60%,#f5ede2 100%);padding:32px 20px;}
+.store-coming{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#eef4ee 0%,#faf8f3 60%,#f5ede2 100%);padding:32px 20px;}
 .store-coming-text{font-size:28px;font-weight:700;color:var(--sage);margin-bottom:10px;}
 .store-coming-sub{font-size:15px;color:var(--soft-brown);}
-#loginScreen{min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;background:linear-gradient(160deg,#eef4ee 0%,#faf8f3 60%,#f5ede2 100%);}
+#loginScreen{flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;background:linear-gradient(160deg,#eef4ee 0%,#faf8f3 60%,#f5ede2 100%);}
 #loginScreen.active{display:flex;}
 .dada-logo{font-size:56px;font-weight:900;color:var(--sage);font-family:'Playfair Display',serif;letter-spacing:4px;margin-bottom:4px;}
 .dada-sub{font-size:13px;color:var(--soft-brown);margin-bottom:20px;letter-spacing:2px;font-weight:500;}
@@ -44,7 +48,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--cream);color:var(--warm-b
 .tab-btn.active{background:var(--white);color:var(--sage);box-shadow:0 2px 8px rgba(138,171,138,0.2);}
 
 /* SURVEY */
-#surveyScreen{min-height:100vh;}
+#surveyScreen{}
 #surveyScreen.active{display:flex;flex-direction:column;}
 .survey-hero{position:relative;min-height:200px;background:linear-gradient(rgba(0,0,0,0.45),rgba(0,0,0,0.55)),url('https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=800&q=80') center/cover no-repeat;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 24px;text-align:center;}
 .survey-hero h1{font-size:24px;font-weight:800;color:white;margin-bottom:8px;}
@@ -65,7 +69,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--cream);color:var(--warm-b
 
 /* HOME */
 #homeScreen{min-height:100vh;}
-#homeScreen.active{display:flex;flex-direction:column;}
+#homeScreen.active{display:flex;flex-direction:column;min-height:100%;}
 .home-hero{position:relative;min-height:220px;background:linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.5)),url('https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=800&q=80') center/cover no-repeat;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;text-align:center;}
 .home-logout{position:absolute;top:16px;left:16px;background:rgba(255,255,255,0.2);border:none;color:white;padding:6px 14px;border-radius:20px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;}
 .home-hero-logo{font-size:36px;font-weight:900;color:var(--gold);font-family:'Playfair Display',serif;letter-spacing:4px;margin-bottom:6px;}
@@ -557,7 +561,7 @@ const deleteClient  = async(code)=>{
 
 // UI
 const $=id=>document.getElementById(id);
-const showScreen=id=>{document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');window.scrollTo(0,0);};
+const showScreen=id=>{document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.scrollTop=0;});const el=$(id);if(el){el.classList.add('active');el.scrollTop=0;}};
 function goToLogin(){showScreen('loginScreen');}
 const WHATSAPP_LINK = 'https://wa.me/9665XXXXXXXX'; // ← غيّري الرقم هنا
 function openWhatsApp(){window.open(WHATSAPP_LINK,'_blank');}
@@ -635,7 +639,7 @@ function logout(){user=null;viewingClient=null;currentDay=1;fuWeek=1;fuDay=1;$('
 // SURVEY
 function startSurvey(){showScreen('surveyScreen');surveySection=0;renderProgress();showSec(0);}
 function renderProgress(){$('surveyProgress').innerHTML=[0,1,2,3].map(i=>`<div class="progress-dot ${i<surveySection?'done':i===surveySection?'active':''}"></div>`).join('');}
-function showSec(n){document.querySelectorAll('.survey-section').forEach((s,i)=>s.classList.toggle('active',i===n));renderProgress();window.scrollTo(0,0);}
+function showSec(n){document.querySelectorAll('.survey-section').forEach((s,i)=>s.classList.toggle('active',i===n));renderProgress();const sc=$('surveyScreen');if(sc)sc.scrollTop=0;}
 function nextSection(){if(surveySection<3){surveySection++;showSec(surveySection);}}
 function prevSection(){if(surveySection>0){surveySection--;showSec(surveySection);}}
 function selectRadio(gid,el,val){
