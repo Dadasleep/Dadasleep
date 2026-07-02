@@ -862,7 +862,7 @@ const showScreen=id=>{document.querySelectorAll('.screen').forEach(s=>{s.classLi
 function goToLogin(){showScreen('loginScreen');}
 const WHATSAPP_LINK = 'https://wa.me/9665XXXXXXXX'; // ← غيّري الرقم هنا
 function openWhatsApp(){window.open(WHATSAPP_LINK,'_blank');}
-function goToStore(){showScreen('storeScreen');}
+// goToStore defined below with carousel init
 const showAlert=(el,msg,type='error')=>{el.className=`alert alert-${type}`;el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',4000);};
 const gv=id=>$(id)?.value||'';
 const rowHTML=(k,v)=>v?`<div class="summary-row"><span class="summary-key">${k}</span><span class="summary-val">${v}</span></div>`:'';
@@ -1649,7 +1649,6 @@ function sijilNext(){ sijilGo(sijilIdx + 1); }
 function sijilPrev(){ sijilGo(sijilIdx - 1); }
 
 // تهيئة الـ carousel عند فتح المتجر
-const _origGoToStore = window.goToStore;
 function goToStore(){
   showScreen('storeScreen');
   setTimeout(initSijilCarousel, 50);
@@ -1692,7 +1691,7 @@ function submitReview(prefix, product){
   document.querySelectorAll(`#${prefix}Stars .review-star`).forEach(s=>s.classList.remove('active'));
 }
 
-Object.assign(window,{sijilNext,sijilPrev,setStars,submitReview,goToStore,startNapTimer,stopNapTimer,switchLoginTab,loginMother,loginConsultant,logout,showTab,showFollowupTab,saveDay,saveFuDay,saveConsultantNotes,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,selectDays,viewClientAsync,viewClientFollowup,confirmDeleteAsync,exportAllToCSV,exportClientCSV,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToFollowup,goToProfile,viewSurveyAsync,addFollowupWeek,updateAgeDisplay,formatTime12,fuSelectDay,selectNapMood,fuSelectWeekNotes,saveWeekNotesForm,goToLogin,openWhatsApp,goToStore});
+Object.assign(window,{sijilNext,sijilPrev,setStars,submitReview,startNapTimer,stopNapTimer,switchLoginTab,loginMother,loginConsultant,logout,showTab,showFollowupTab,saveDay,saveFuDay,saveConsultantNotes,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,selectDays,viewClientAsync,viewClientFollowup,confirmDeleteAsync,exportAllToCSV,exportClientCSV,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToFollowup,goToProfile,viewSurveyAsync,addFollowupWeek,updateAgeDisplay,formatTime12,fuSelectDay,selectNapMood,fuSelectWeekNotes,saveWeekNotesForm,goToLogin,openWhatsApp,goToStore});
 </script>
 </body>
 </html>
