@@ -1448,7 +1448,14 @@ async function exportAllToCSV(){
 }
 
 // ADD CLIENT
-function openAddClientModal(){$('addClientModal').classList.add('open');}
+function openAddClientModal(){
+  $('newClientName').value='';
+  $('newClientCode').value='';
+  selectDays(3);
+  const al=$('addClientAlert');
+  if(al){al.style.display='none';al.textContent='';}
+  $('addClientModal').classList.add('open');
+}
 function closeAddClientModal(){$('addClientModal').classList.remove('open');}
 function selectDays(n){
   $('newClientDays').value=n;
