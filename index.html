@@ -702,7 +702,7 @@ textarea{resize:vertical;min-height:76px;}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc, addDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyAYOCGub1ibYfTZR9ms9THXFSRKAHYtDJ8",
@@ -876,24 +876,34 @@ async function loginMother(){
   const btn=document.querySelector('#motherLoginForm .btn-primary');
   btn.textContent='جاري الدخول...';btn.disabled=true;
   try{
-    // نتحقق من وجود العميلة بقراءة مستندها فقط (وليس المجموعة كاملة كما كان سابقًا)
-    const clientSnap=await getDoc(doc(db,'clients',code));
-    if(!clientSnap.exists()){
-      registerFailedAttempt();
-      showAlert(alertEl,'الكود غير صحيح');
-      return;
-    }
     const email=codeToEmail(code), password=codeToPassword(code);
+    let justCreatedAccount=false;
     try{
       await signInWithEmailAndPassword(auth,email,password);
     }catch(authErr){
       // أول تسجيل دخول لعميلة كان لديها بيانات في Firestore من قبل تفعيل Authentication —
       // ننشئ حسابها الآن بنفس كودها الحالي دون تغيير أي بيانات محفوظة عنها.
+      // (قد يكون أيضاً كوداً غير صحيح أبداً — نتحقق من ذلك بالأسفل بعد الدخول)
       if(authErr.code==='auth/user-not-found'||authErr.code==='auth/invalid-credential'||authErr.code==='auth/invalid-login-credentials'){
         await createUserWithEmailAndPassword(auth,email,password);
+        justCreatedAccount=true;
       } else {
         throw authErr;
       }
+    }
+    // الآن وبعد المصادقة، نتحقق من وجود مستند العميلة الفعلي (مسموح الآن بقراءة مستندها فقط بحسب قواعد الأمان)
+    const clientSnap=await getDoc(doc(db,'clients',code));
+    if(!clientSnap.exists()){
+      // كود غير صحيح أبداً — إن كنا أنشأنا حساب Authentication وهمي له للتو، نحذفه فوراً حتى لا يبقى حساباً صالحاً بلا بيانات
+      if(justCreatedAccount && auth.currentUser){
+        try{ await deleteUser(auth.currentUser); }
+        catch(delErr){ console.error('⚠️ فشل حذف حساب الكود غير الصحيح:',delErr); await signOut(auth); }
+      } else {
+        await signOut(auth);
+      }
+      registerFailedAttempt();
+      showAlert(alertEl,'الكود غير صحيح');
+      return;
     }
     clearAttempts();
     // التنقّل للشاشة الرئيسية يتم تلقائيًا عبر onAuthStateChanged بالأسفل
@@ -951,7 +961,11 @@ onAuthStateChanged(auth, async (fbUser)=>{
   if(!code) return;
   try{
     const snap=await getDoc(doc(db,'clients',code));
-    const data=snap.exists()?snap.data():null;
+    if(!snap.exists()){
+      // كود غير مرتبط بأي عميلة فعلية — لا ننتقل لأي شاشة، loginMother() هي المسؤولة عن التنظيف
+      return;
+    }
+    const data=snap.data();
     user={name:data?.name||'',code,isConsultant:false};
     currentDay=1;
     showHome();
