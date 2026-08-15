@@ -108,7 +108,7 @@ html.landing-active body,html.login-active body{overflow-y:auto!important;height
 /* SHARED */
 .form-group{margin-bottom:14px;}
 label{display:block;font-size:13px;font-weight:600;color:var(--soft-brown);margin-bottom:5px;}
-input[type="text"],input[type="number"],input[type="time"],input[type="date"],input[type="tel"],select,textarea{width:100%;padding:11px 10px;border:1.5px solid #e8e0d5;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--warm-brown);background:var(--cream);outline:none;transition:border-color 0.2s;direction:rtl;box-sizing:border-box;}
+input[type="text"],input[type="number"],input[type="time"],input[type="date"],input[type="tel"],input[type="email"],input[type="password"],select,textarea{width:100%;padding:11px 10px;border:1.5px solid #e8e0d5;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--warm-brown);background:var(--cream);outline:none;transition:border-color 0.2s;direction:rtl;box-sizing:border-box;}
 input[type="time"]{text-align:center;padding:11px 10px;font-size:15px;-webkit-appearance:none;appearance:none;}
 input:focus,select:focus,textarea:focus{border-color:var(--sage);}
 textarea{resize:vertical;min-height:76px;}
@@ -677,7 +677,8 @@ textarea{resize:vertical;min-height:76px;}
   <div class="modal">
     <div class="modal-title">➕ إضافة عميلة جديدة</div>
     <div id="addClientAlert" class="alert alert-error" style="display:none"></div>
-    <div class="form-group"><label>اسم الأم أو الطفل</label><input type="text" id="newClientName" placeholder="مثال: نورة"></div>
+    <div class="form-group"><label>اسم الأم</label><input type="text" id="newClientName" placeholder="مثال: نورة"></div>
+    <div class="form-group"><label>اسم الطفل</label><input type="text" id="newClientChildName" placeholder="مثال: لبنى"></div>
     <div class="form-group">
       <label>الكود السري (يتولّد تلقائيًا)</label>
       <div style="display:flex;gap:8px;align-items:center">
@@ -1485,7 +1486,7 @@ async function renderClients(){
   el.innerHTML=clients.map(c=>`
     <div class="client-card">
       <div onclick="viewClientAsync('${c.code}')" style="flex:1;cursor:pointer">
-        <div style="font-size:15px;font-weight:700;color:var(--warm-brown)">${c.name}</div>
+        <div style="font-size:15px;font-weight:700;color:var(--warm-brown)">${c.childName ? `${c.name} — ${c.childName}` : c.name}</div>
         <div style="font-size:11px;color:var(--soft-brown);margin-top:2px">كود: ${c.code} — ${c.days||5} أيام</div>
       </div>
       <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end">
@@ -1578,6 +1579,7 @@ async function exportAllToCSV(){
 // ADD CLIENT
 async function openAddClientModal(){
   $('newClientName').value='';
+  $('newClientChildName').value='';
   $('newClientCode').value='...جاري توليد الكود';
   selectDays(3);
   const al=$('addClientAlert');
@@ -1604,7 +1606,7 @@ function selectDays(n){
   [3,5].forEach(d=>{const b=$(`days${d}btn`);if(b){b.style.background=d===n?'var(--sage)':'var(--cream)';b.style.color=d===n?'white':'var(--soft-brown)';b.style.borderColor=d===n?'var(--sage)':'#e8e0d5';}});
 }
 async function addClient(){
-  const name=$('newClientName').value.trim(),code=$('newClientCode').value.trim().toUpperCase(),days=parseInt($('newClientDays').value)||3;
+  const name=$('newClientName').value.trim(),childName=$('newClientChildName').value.trim(),code=$('newClientCode').value.trim().toUpperCase(),days=parseInt($('newClientDays').value)||3;
   const al=$('addClientAlert');
   if(!name||!code||code.startsWith('...')){showAlert(al,'يرجى إدخال اسم العميلة، وانتظار توليد الكود');return;}
   const btn=document.querySelector('#addClientModal .btn-primary');
@@ -1613,7 +1615,7 @@ async function addClient(){
     // تأكيد أخير أن الكود لم يُستخدم (حماية من تعارض نادر بين فتح النافذة والحفظ)
     const existing=await getDoc(doc(db,'clients',code));
     if(existing.exists()){showAlert(al,'حدث تعارض بالكود، أعيدي فتح النافذة لتوليد كود جديد');return;}
-    await saveClient(code,{name,code,days,followupWeeks:2,createdAt:new Date().toISOString()});
+    await saveClient(code,{name,childName,code,days,followupWeeks:2,createdAt:new Date().toISOString()});
     // إنشاء حساب Firebase Authentication لهذه العميلة عبر التطبيق الفرعي
     // (لا يؤثر على جلسة دخول المستشارة الحالية)
     await createUserWithEmailAndPassword(authSecondary,codeToEmail(code),codeToPassword(code));
