@@ -434,7 +434,8 @@ textarea{resize:vertical;min-height:76px;}
       <button class="btn-primary" onclick="loginMother()">دخول</button>
     </div>
     <div id="consultantLoginForm" style="display:none">
-      <div class="form-group"><label>كلمة المرور</label><input type="text" id="consultantPassword" placeholder="كلمة مرور المستشارة 👩‍💼"></div>
+      <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="consultantEmail" placeholder="بريد حساب المستشارة"></div>
+      <div class="form-group"><label>كلمة المرور</label><input type="password" id="consultantPassword" placeholder="كلمة مرور المستشارة 👩‍💼"></div>
       <button class="btn-primary" onclick="loginConsultant()">دخول كمستشارة</button>
     </div>
   </div>
@@ -677,7 +678,13 @@ textarea{resize:vertical;min-height:76px;}
     <div class="modal-title">➕ إضافة عميلة جديدة</div>
     <div id="addClientAlert" class="alert alert-error" style="display:none"></div>
     <div class="form-group"><label>اسم الأم أو الطفل</label><input type="text" id="newClientName" placeholder="مثال: نورة"></div>
-    <div class="form-group"><label>الكود السري</label><input type="text" id="newClientCode" placeholder="مثال: NORA2025"></div>
+    <div class="form-group">
+      <label>الكود السري (يتولّد تلقائيًا)</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="newClientCode" readonly style="flex:1;text-align:center;font-weight:700;letter-spacing:2px;background:var(--sage-pale);">
+        <button type="button" onclick="regenerateClientCode()" title="توليد كود جديد" style="flex-shrink:0;padding:11px 14px;border:1.5px solid var(--sage);border-radius:12px;background:var(--white);color:var(--sage);font-size:16px;cursor:pointer;">🔄</button>
+      </div>
+    </div>
     <div class="form-group">
       <label>عدد أيام مفكرة النوم</label>
       <div style="display:flex;gap:8px;margin-top:4px">
@@ -694,18 +701,63 @@ textarea{resize:vertical;min-height:76px;}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc, addDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const fb = initializeApp({
+const firebaseConfig = {
   apiKey:"AIzaSyAYOCGub1ibYfTZR9ms9THXFSRKAHYtDJ8",
   authDomain:"dada-sleep.firebaseapp.com",
   projectId:"dada-sleep",
   storageBucket:"dada-sleep.firebasestorage.app",
   messagingSenderId:"915013833577",
   appId:"1:915013833577:web:ac9675a0b9db653f0be3f8"
-});
+};
+const fb = initializeApp(firebaseConfig);
 const db = getFirestore(fb);
+const auth = getAuth(fb);
+setPersistence(auth, browserLocalPersistence).catch(e=>console.error('⚠️ فشل ضبط الجلسة الدائمة:', e));
 
-const PASS = "dada2025";
+// تطبيق Firebase فرعي منفصل — يُستخدم فقط عند إنشاء حساب Authentication لعميلة جديدة
+// من لوحة المستشارة، حتى لا تُسجَّل خروج المستشارة من جلستها الحالية أثناء العملية.
+const fbSecondary = initializeApp(firebaseConfig, 'secondary-client-creation');
+const authSecondary = getAuth(fbSecondary);
+
+// الأم لا تدخل أبدًا بريد أو كلمة مرور — فقط الكود كما كانت تفعل دائمًا.
+// هذه الدوال تحوّل كودها داخليًا إلى بريد/كلمة مرور صناعية يستخدمها Firebase Authentication خلف الكواليس.
+// (الأكواد الحالية للعميلات لا تتغيّر — تُستخدم كما هي لبناء هذا البريد الصناعي)
+const codeToEmail    = code => `${code.toLowerCase()}@clients.dadasleep.internal`;
+const codeToPassword = code => `dada_${code}`; // يضمن كلمة مرور بطول 6 أحرف فأكثر مهما كان طول الكود الأصلي
+
+// توليد كود عشوائي فريد من 6 خانات: حروف كبيرة + أرقام، بدون رموز يسهل الخلط بينها (O/0, I/1/L)
+const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function generateRandomCode(len=6){
+  let out='';
+  const arr = new Uint32Array(len);
+  crypto.getRandomValues(arr);
+  for(let i=0;i<len;i++) out += CODE_ALPHABET[arr[i] % CODE_ALPHABET.length];
+  return out;
+}
+async function generateUniqueClientCode(){
+  for(let attempt=0; attempt<10; attempt++){
+    const candidate = generateRandomCode(6);
+    const existing = await getDoc(doc(db,'clients',candidate));
+    if(!existing.exists()) return candidate;
+  }
+  throw new Error('تعذّر توليد كود فريد بعد عدة محاولات');
+}
+
+// حماية بسيطة من محاولات الدخول المتكررة (على مستوى المتصفح/الجهاز فقط —
+// وليست بديلاً عن حماية من جهة الخادم، لكنها تحد من محاولات التخمين الآلية من نفس الجهاز)
+const LOGIN_ATTEMPT_KEY='dada_login_attempts', MAX_ATTEMPTS=5, LOCKOUT_MS=2*60*1000;
+function getAttemptState(){ try{return JSON.parse(localStorage.getItem(LOGIN_ATTEMPT_KEY))||{count:0,lockUntil:0};}catch{return{count:0,lockUntil:0};} }
+function setAttemptState(s){ try{localStorage.setItem(LOGIN_ATTEMPT_KEY, JSON.stringify(s));}catch{} }
+function isLockedOut(){ const s=getAttemptState(); return !!(s.lockUntil && Date.now()<s.lockUntil); }
+function registerFailedAttempt(){
+  const s=getAttemptState(); s.count=(s.count||0)+1;
+  if(s.count>=MAX_ATTEMPTS){ s.lockUntil=Date.now()+LOCKOUT_MS; s.count=0; }
+  setAttemptState(s);
+}
+function clearAttempts(){ setAttemptState({count:0,lockUntil:0}); }
+
 let user=null, currentDay=1, viewingClient=null, surveySection=0;
 let fuWeek=1, fuDay=1;
 let currentFollowupWeeks=2; // الافتراضي أسبوعان
@@ -813,23 +865,99 @@ function switchLoginTab(tab){
 }
 async function loginMother(){
   const name=$('motherName').value.trim(),code=$('motherCode').value.trim().toUpperCase();
-  if(!name||!code){showAlert($('loginAlert'),'يرجى إدخال الاسم والكود');return;}
+  const alertEl=$('loginAlert');
+  if(!name||!code){showAlert(alertEl,'يرجى إدخال الاسم والكود');return;}
+  if(isLockedOut()){
+    const mins=Math.ceil((getAttemptState().lockUntil-Date.now())/60000);
+    showAlert(alertEl,`محاولات كثيرة، يرجى المحاولة بعد ${mins} دقيقة`);
+    return;
+  }
   const btn=document.querySelector('#motherLoginForm .btn-primary');
   btn.textContent='جاري الدخول...';btn.disabled=true;
   try{
-    const clients=await getClients();
-    if(!clients.find(c=>c.code===code)) await saveClient(code,{name,code,days:5,createdAt:new Date().toISOString()});
-    user={name,code,isConsultant:false};currentDay=1;
+    // نتحقق من وجود العميلة بقراءة مستندها فقط (وليس المجموعة كاملة كما كان سابقًا)
+    const clientSnap=await getDoc(doc(db,'clients',code));
+    if(!clientSnap.exists()){
+      registerFailedAttempt();
+      showAlert(alertEl,'الكود غير صحيح');
+      return;
+    }
+    const email=codeToEmail(code), password=codeToPassword(code);
+    try{
+      await signInWithEmailAndPassword(auth,email,password);
+    }catch(authErr){
+      // أول تسجيل دخول لعميلة كان لديها بيانات في Firestore من قبل تفعيل Authentication —
+      // ننشئ حسابها الآن بنفس كودها الحالي دون تغيير أي بيانات محفوظة عنها.
+      if(authErr.code==='auth/user-not-found'||authErr.code==='auth/invalid-credential'||authErr.code==='auth/invalid-login-credentials'){
+        await createUserWithEmailAndPassword(auth,email,password);
+      } else {
+        throw authErr;
+      }
+    }
+    clearAttempts();
+    // التنقّل للشاشة الرئيسية يتم تلقائيًا عبر onAuthStateChanged بالأسفل
+  }catch(e){
+    registerFailedAttempt();
+    console.error('❌ loginMother:',e);
+    showAlert(alertEl,'حدث خطأ، تحققي من الاتصال');
+  }finally{
+    btn.textContent='دخول';btn.disabled=false;
+  }
+}
+async function loginConsultant(){
+  const email=$('consultantEmail').value.trim(),password=$('consultantPassword').value;
+  const alertEl=$('loginAlert');
+  if(!email||!password){showAlert(alertEl,'يرجى إدخال البريد وكلمة المرور');return;}
+  if(isLockedOut()){
+    const mins=Math.ceil((getAttemptState().lockUntil-Date.now())/60000);
+    showAlert(alertEl,`محاولات كثيرة، يرجى المحاولة بعد ${mins} دقيقة`);
+    return;
+  }
+  const btn=document.querySelector('#consultantLoginForm .btn-primary');
+  btn.textContent='جاري الدخول...';btn.disabled=true;
+  try{
+    await signInWithEmailAndPassword(auth,email,password);
+    clearAttempts();
+    // التنقّل للوحة المستشارة يتم تلقائيًا عبر onAuthStateChanged بالأسفل
+  }catch(e){
+    registerFailedAttempt();
+    showAlert(alertEl,'البريد أو كلمة المرور غير صحيحة');
+  }finally{
+    btn.textContent='دخول كمستشارة';btn.disabled=false;
+  }
+}
+async function logout(){
+  try{ await signOut(auth); }catch(e){ console.error('❌ logout:',e); }
+  user=null;viewingClient=null;currentDay=1;fuWeek=1;fuDay=1;
+  $('motherName').value='';$('motherCode').value='';
+  if($('consultantEmail'))$('consultantEmail').value='';
+  $('consultantPassword').value='';
+  showScreen('landingScreen');
+}
+
+// استعادة الجلسة تلقائيًا إذا كانت الأم أو المستشارة مسجّلة دخول مسبقًا على هذا الجهاز،
+// وأيضًا نقطة التنقّل الموحّدة بعد أي تسجيل دخول ناجح (مباشر أو مُستعاد).
+// أي حساب Authentication ليس بريده الصناعي الخاص بالعميلات يُعامَل كحساب مستشارة/إدارة.
+onAuthStateChanged(auth, async (fbUser)=>{
+  if(!fbUser) return; // تبقى على شاشة الدخول كما هي
+  const emailLower=(fbUser.email||'').toLowerCase();
+  if(!emailLower.endsWith('@clients.dadasleep.internal')){
+    user={name:'المستشارة',code:'CONSULTANT',isConsultant:true};
+    enterConsultantApp();
+    return;
+  }
+  const code=emailLower.split('@')[0].toUpperCase();
+  if(!code) return;
+  try{
+    const snap=await getDoc(doc(db,'clients',code));
+    const data=snap.exists()?snap.data():null;
+    user={name:data?.name||'',code,isConsultant:false};
+    currentDay=1;
     showHome();
-  }catch{showAlert($('loginAlert'),'حدث خطأ، تحققي من الاتصال');}
-  finally{btn.textContent='دخول';btn.disabled=false;}
-}
-function loginConsultant(){
-  if($('consultantPassword').value.trim()!==PASS){showAlert($('loginAlert'),'كلمة المرور غير صحيحة');return;}
-  user={name:'المستشارة',code:'CONSULTANT',isConsultant:true};
-  enterConsultantApp();
-}
-function logout(){user=null;viewingClient=null;currentDay=1;fuWeek=1;fuDay=1;$('motherName').value='';$('motherCode').value='';$('consultantPassword').value='';showScreen('landingScreen');}
+  }catch(e){
+    console.error('⚠️ فشل استعادة بيانات العميلة:',e);
+  }
+});
 
 // SURVEY
 function startSurvey(){showScreen('surveyScreen');surveySection=0;renderProgress();showSec(0);}
@@ -1448,13 +1576,27 @@ async function exportAllToCSV(){
 }
 
 // ADD CLIENT
-function openAddClientModal(){
+async function openAddClientModal(){
   $('newClientName').value='';
-  $('newClientCode').value='';
+  $('newClientCode').value='...جاري توليد الكود';
   selectDays(3);
   const al=$('addClientAlert');
   if(al){al.style.display='none';al.textContent='';}
   $('addClientModal').classList.add('open');
+  try{
+    $('newClientCode').value=await generateUniqueClientCode();
+  }catch(e){
+    $('newClientCode').value='';
+    showAlert(al,'تعذّر توليد الكود، أعيدي فتح النافذة');
+  }
+}
+async function regenerateClientCode(){
+  $('newClientCode').value='...جاري توليد الكود';
+  try{
+    $('newClientCode').value=await generateUniqueClientCode();
+  }catch(e){
+    showAlert($('addClientAlert'),'تعذّر توليد الكود، حاولي مرة أخرى');
+  }
 }
 function closeAddClientModal(){$('addClientModal').classList.remove('open');}
 function selectDays(n){
@@ -1464,12 +1606,27 @@ function selectDays(n){
 async function addClient(){
   const name=$('newClientName').value.trim(),code=$('newClientCode').value.trim().toUpperCase(),days=parseInt($('newClientDays').value)||3;
   const al=$('addClientAlert');
-  if(!name||!code){showAlert(al,'يرجى إدخال الاسم والكود');return;}
-  const clients=await getClients();
-  if(clients.find(c=>c.code===code)){showAlert(al,'هذا الكود موجود مسبقاً');return;}
-  await saveClient(code,{name,code,days,followupWeeks:2,createdAt:new Date().toISOString()});
-  $('newClientName').value='';$('newClientCode').value='';selectDays(3);
-  closeAddClientModal();await renderClients();
+  if(!name||!code||code.startsWith('...')){showAlert(al,'يرجى إدخال اسم العميلة، وانتظار توليد الكود');return;}
+  const btn=document.querySelector('#addClientModal .btn-primary');
+  btn.textContent='جاري الإضافة...';btn.disabled=true;
+  try{
+    // تأكيد أخير أن الكود لم يُستخدم (حماية من تعارض نادر بين فتح النافذة والحفظ)
+    const existing=await getDoc(doc(db,'clients',code));
+    if(existing.exists()){showAlert(al,'حدث تعارض بالكود، أعيدي فتح النافذة لتوليد كود جديد');return;}
+    await saveClient(code,{name,code,days,followupWeeks:2,createdAt:new Date().toISOString()});
+    // إنشاء حساب Firebase Authentication لهذه العميلة عبر التطبيق الفرعي
+    // (لا يؤثر على جلسة دخول المستشارة الحالية)
+    await createUserWithEmailAndPassword(authSecondary,codeToEmail(code),codeToPassword(code));
+    try{ await signOut(authSecondary); }catch{}
+    closeAddClientModal();
+    await renderClients();
+    alert(`✅ تمت إضافة العميلة "${name}"\nالكود السري: ${code}\n\nأرسلي هذا الكود للعميلة (مثلاً عبر واتساب) لتسجّل دخولها.`);
+  }catch(e){
+    console.error('❌ addClient:',e);
+    showAlert(al,'حدث خطأ أثناء إنشاء حساب العميلة، حاولي مرة أخرى');
+  }finally{
+    btn.textContent='إضافة العميلة';btn.disabled=false;
+  }
 }
 
 // CONSULTANT APP
@@ -1783,7 +1940,7 @@ async function submitReviewForm() {
   }
 }
 
-Object.assign(window,{goToStore,openProduct,detailCarouselMove,detailCarouselGo,openReviewForm,rfSetStar,submitReviewForm,startNapTimer,stopNapTimer,switchLoginTab,loginMother,loginConsultant,logout,showTab,showFollowupTab,saveDay,saveFuDay,saveConsultantNotes,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,selectDays,viewClientAsync,viewClientFollowup,confirmDeleteAsync,exportAllToCSV,exportClientCSV,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToFollowup,goToProfile,viewSurveyAsync,addFollowupWeek,updateAgeDisplay,formatTime12,fuSelectDay,selectNapMood,fuSelectWeekNotes,saveWeekNotesForm,goToLogin,openWhatsApp,goToStore});
+Object.assign(window,{goToStore,openProduct,detailCarouselMove,detailCarouselGo,openReviewForm,rfSetStar,submitReviewForm,startNapTimer,stopNapTimer,switchLoginTab,loginMother,loginConsultant,logout,showTab,showFollowupTab,saveDay,saveFuDay,saveConsultantNotes,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,regenerateClientCode,selectDays,viewClientAsync,viewClientFollowup,confirmDeleteAsync,exportAllToCSV,exportClientCSV,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToFollowup,goToProfile,viewSurveyAsync,addFollowupWeek,updateAgeDisplay,formatTime12,fuSelectDay,selectNapMood,fuSelectWeekNotes,saveWeekNotesForm,goToLogin,openWhatsApp,goToStore});
 </script>
 </body>
 </html>
