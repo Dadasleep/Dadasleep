@@ -1015,9 +1015,10 @@ async function goToFollowup(){
   console.log('📂 [goToFollowup] code:', code, '| isConsultant:', user?.isConsultant, '| viewingClient:', viewingClient?.code);
   showScreen('followupScreen');
   $('fuHeaderName').textContent=viewingClient?.name||user?.name;
-  // تحميل عدد أسابيع المتابعة
-  const clients=await getClients();
-  const clientData=clients.find(c=>c.code===code);
+  // تحميل عدد أسابيع المتابعة (قراءة مستند العميلة نفسه فقط، وليس المجموعة كاملة —
+  // ضروري لأن قواعد الأمان الجديدة لا تسمح للعميلة بقراءة كل المجموعة)
+  const clientSnap=await getDoc(doc(db,'clients',code));
+  const clientData=clientSnap.exists()?clientSnap.data():null;
   currentFollowupWeeks=clientData?.followupWeeks||2;
   console.log('📂 [goToFollowup] followupWeeks من Firestore:', clientData?.followupWeeks, '→ سيُستخدم:', currentFollowupWeeks, '| كامل clientData:', JSON.stringify(clientData));
   // بناء الشاشة
