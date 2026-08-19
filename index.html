@@ -811,7 +811,7 @@ const deleteClient  = async(code)=>{
 const $=id=>document.getElementById(id);
 const showScreen=id=>{document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.scrollTop=0;});const el=$(id);if(el){el.classList.add('active');el.scrollTop=0;}document.documentElement.classList.toggle('landing-active',id==='landingScreen');document.documentElement.classList.toggle('login-active',id==='loginScreen');};
 function goToLogin(){showScreen('loginScreen');}
-const WHATSAPP_LINK = 'https://wa.me/9665XXXXXXXX'; // ← غيّري الرقم هنا
+const WHATSAPP_LINK = 'https://wa.me/966559159424';
 function openWhatsApp(){window.open(WHATSAPP_LINK,'_blank');}
 // goToStore defined below with carousel init
 const showAlert=(el,msg,type='error')=>{el.className=`alert alert-${type}`;el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',4000);};
