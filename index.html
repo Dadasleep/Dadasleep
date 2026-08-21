@@ -261,23 +261,6 @@ textarea{resize:vertical;min-height:76px;}
 .review-alert.success{background:#eef4ee;color:var(--sage);}
 .review-alert.error{background:#fdf0f0;color:#c0392b;}
 
-/* FOOTER */
-.landing-footer{width:100%;max-width:460px;margin-top:20px;padding-top:18px;border-top:1px solid #e8e0d4;text-align:center;color:var(--soft-brown);font-size:12px;line-height:1.9;}
-.landing-footer-brand{font-weight:700;color:var(--warm-brown);font-size:13px;margin-bottom:4px;}
-.landing-footer a{color:var(--soft-brown);text-decoration:underline;cursor:pointer;}
-.landing-footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin-top:10px;}
-.landing-footer-links span{color:var(--sage);cursor:pointer;text-decoration:underline;}
-.landing-footer-tiktok{display:inline-flex;align-items:center;gap:4px;vertical-align:middle;}
-.landing-footer-tiktok svg{flex-shrink:0;}
-
-/* POLICY TEXT */
-.policy-text{text-align:right;}
-.policy-text h3{font-size:15px;font-weight:700;color:var(--warm-brown);margin:18px 0 8px;}
-.policy-text h3:first-child{margin-top:0;}
-.policy-text p{font-size:14px;color:var(--warm-brown);line-height:1.85;margin-bottom:10px;}
-.policy-text ul,.policy-text ol{padding-right:20px;margin-bottom:10px;}
-.policy-text li{font-size:14px;color:var(--warm-brown);line-height:1.85;margin-bottom:6px;}
-
 </style>
 </head>
 <body>
@@ -314,111 +297,6 @@ textarea{resize:vertical;min-height:76px;}
         <div class="landing-card-title">المتجر</div>
         <div class="landing-card-sub">الأدلة والملفات الرقمية</div>
       </div>
-    </div>
-  </div>
-  <div class="landing-footer">
-    <div class="landing-footer-brand">DaDa Sleep</div>
-    <div>السجل التجاري: 7054952150</div>
-    <div><a class="landing-footer-tiktok" onclick="openTikTok()"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M16.6 5.82c-1.05-.91-1.72-2.19-1.85-3.62h-3.03v14.05c0 1.42-1.15 2.57-2.57 2.57s-2.57-1.15-2.57-2.57 1.15-2.57 2.57-2.57c.26 0 .5.04.74.11V10.7c-.24-.03-.49-.05-.74-.05-3.19 0-5.78 2.59-5.78 5.78S6.44 22.2 9.63 22.2s5.78-2.59 5.78-5.78V9.01c1.28.94 2.86 1.5 4.56 1.5V7.48c-1.16 0-2.24-.4-3.09-1.07-.1-.08-.2-.16-.28-.25z"/></svg>@dada.sleep</a></div>
-    <div class="landing-footer-links">
-      <span onclick="openPolicy('privacyScreen')">سياسة الخصوصية</span>
-      <span onclick="openPolicy('termsScreen')">الشروط والأحكام</span>
-      <span onclick="openPolicy('refundScreen')">سياسة الإلغاء والاسترجاع</span>
-    </div>
-  </div>
-</div>
-
-<!-- PRIVACY POLICY SCREEN -->
-<div id="privacyScreen" class="screen">
-  <div class="store-page">
-    <div class="store-header">
-      <button class="store-back-btn" onclick="closePolicy()">← العودة</button>
-      <div class="store-header-title">سياسة الخصوصية</div>
-    </div>
-    <div class="section-card policy-text" style="margin:16px 20px;">
-      <p>نحرص في دادا على حماية خصوصية عملائنا وبياناتهم الشخصية، ويتم جمع واستخدام البيانات فقط بالقدر اللازم لتقديم خدماتنا وتحسين تجربة المستخدم.</p>
-      <h3>البيانات التي نجمعها</h3>
-      <p>قد نجمع بعض البيانات عند استخدام الموقع أو طلب إحدى خدماتنا، مثل:</p>
-      <ul>
-        <li>الاسم ورقم الجوال أو البريد الإلكتروني.</li>
-        <li>معلومات الطفل اللازمة لتقديم الاستشارة، مثل العمر وروتين وأوقات النوم والمعلومات التي تقدمها الأم عن طفلها.</li>
-        <li>بيانات الطلب والدفع اللازمة لإتمام عملية الشراء.</li>
-      </ul>
-      <p>لا تحتفظ دادا ببيانات البطاقات البنكية، وتتم معالجة عمليات الدفع من خلال مزود خدمة الدفع الإلكتروني.</p>
-      <h3>كيف نستخدم البيانات؟</h3>
-      <p>تُستخدم البيانات فقط من أجل:</p>
-      <ul>
-        <li>تقديم الاستشارات ومتابعة العميلة.</li>
-        <li>حفظ ومراجعة سجلات النوم والمعلومات المتعلقة بالخدمة.</li>
-        <li>تنفيذ الطلبات وتسليم المنتجات الرقمية.</li>
-        <li>التواصل مع العميلة والرد على استفساراتها.</li>
-        <li>تشغيل الموقع وتحسين خدمات دادا.</li>
-      </ul>
-      <h3>حفظ البيانات ومشاركتها</h3>
-      <p>قد تُحفظ البيانات باستخدام خدمات تقنية موثوقة مثل Google Firebase اللازمة لتشغيل الموقع وحفظ بيانات العملاء. ولا نبيع البيانات الشخصية أو نشاركها لأغراض تجارية مع أطراف أخرى. وقد تتم مشاركة الحد الأدنى اللازم منها مع مزودي الخدمات التقنية أو خدمات الدفع عندما يكون ذلك ضروريًا لتقديم الخدمة.</p>
-      <p>قد تتم معالجة أو استضافة بعض البيانات خارج المملكة العربية السعودية بحسب البنية التقنية لمزودي الخدمات، وذلك وفق المتطلبات النظامية ذات الصلة.</p>
-      <h3>مدة الاحتفاظ بالبيانات</h3>
-      <p>نحتفظ بالبيانات للمدة اللازمة لتقديم الخدمة والمتابعة، أو للمدة التي تتطلبها الالتزامات النظامية، ثم يتم حذفها أو إخفاء هويتها عندما لا تعود هناك حاجة مشروعة للاحتفاظ بها.</p>
-      <h3>حقوقك</h3>
-      <p>يمكنك التواصل معنا لطلب الاطلاع على بياناتك الشخصية أو تصحيحها أو طلب حذفها متى كان ذلك ممكنًا نظامًا، أو للاستفسار عن طريقة استخدامها.</p>
-      <h3>التواصل</h3>
-      <p>لأي استفسار يتعلق بالخصوصية أو البيانات الشخصية، يمكن التواصل معنا عبر وسائل التواصل الموضحة في الموقع</p>
-    </div>
-  </div>
-</div>
-
-<!-- TERMS AND CONDITIONS SCREEN -->
-<div id="termsScreen" class="screen">
-  <div class="store-page">
-    <div class="store-header">
-      <button class="store-back-btn" onclick="closePolicy()">← العودة</button>
-      <div class="store-header-title">الشروط والأحكام</div>
-    </div>
-    <div class="section-card policy-text" style="margin:16px 20px;">
-      <p>مرحبًا بك في دادا. باستخدام الموقع أو شراء أحد منتجاتنا أو خدماتنا، فإنك توافق على الشروط والأحكام التالية:</p>
-      <h3>1. خدمات دادا</h3>
-      <p>تقدم دادا استشارات متعلقة بنوم الأطفال، بالإضافة إلى منتجات وأدلة رقمية قابلة للتحميل. المعلومات والاستشارات المقدمة ذات طابع تثقيفي وإرشادي، ولا تُعد بديلًا عن الاستشارة أو التشخيص الطبي.</p>
-      <h3>2. الاستشارات</h3>
-      <p>تعتمد الاستشارة على المعلومات التي تقدمها العميلة عن طفلها وروتينه ونومه، لذلك يُرجى تقديم معلومات صحيحة ودقيقة للحصول على خدمة مناسبة. وتختلف استجابة الأطفال ونتائج تطبيق الخطط من طفل لآخر، لذلك لا يمكن ضمان نتيجة محددة.</p>
-      <h3>3. حساب العميلة والوصول</h3>
-      <p>قد يتم منح العميلة رمزًا أو وسيلة دخول خاصة للوصول إلى ملف طفلها ومتابعة الاستشارة. وتتحمل العميلة مسؤولية المحافظة على بيانات أو رمز الدخول وعدم مشاركته مع الآخرين.</p>
-      <h3>4. المنتجات الرقمية</h3>
-      <p>المنتجات الرقمية المعروضة في متجر دادا مخصصة للاستخدام الشخصي فقط، ولا يجوز إعادة بيعها أو نشرها أو مشاركتها أو نسخها لأغراض تجارية دون إذن مسبق.</p>
-      <h3>5. الأسعار والدفع</h3>
-      <p>تظهر أسعار المنتجات والخدمات بوضوح على الموقع قبل إتمام الطلب. تتم عمليات الدفع الإلكتروني من خلال مزود دفع إلكتروني معتمد، وتخضع عملية الدفع أيضًا لشروط مزود الخدمة.</p>
-      <h3>6. تسليم المنتجات الرقمية</h3>
-      <p>بعد إتمام عملية الدفع بنجاح، يتم توفير المنتج الرقمي للعميلة إلكترونيًا بالطريقة الموضحة أثناء عملية الشراء.</p>
-      <h3>7. الإلغاء والاسترجاع</h3>
-      <p>تخضع طلبات الإلغاء والاسترجاع لـ سياسة الإلغاء والاسترجاع المنشورة على الموقع.</p>
-      <h3>8. حقوق الملكية الفكرية</h3>
-      <p>جميع المحتويات والأدلة والتصاميم والمواد المقدمة من دادا مملوكة لها، ولا يجوز نسخها أو إعادة نشرها أو استخدامها تجاريًا دون إذن.</p>
-      <h3>9. الخصوصية</h3>
-      <p>يتم التعامل مع البيانات الشخصية وفق سياسة الخصوصية المنشورة على الموقع وبما يتوافق مع الأنظمة المعمول بها في المملكة العربية السعودية.</p>
-      <h3>10. التعديلات</h3>
-      <p>يحق لدادا تحديث هذه الشروط عند الحاجة، ويتم نشر النسخة المحدثة على الموقع مع توضيح تاريخ آخر تحديث.</p>
-      <h3>11. التواصل</h3>
-      <p>لأي استفسار أو شكوى تتعلق بطلب أو خدمة، يمكن التواصل مع دادا عبر وسائل التواصل الموضحة في الموقع</p>
-    </div>
-  </div>
-</div>
-
-<!-- CANCELLATION AND REFUND POLICY SCREEN -->
-<div id="refundScreen" class="screen">
-  <div class="store-page">
-    <div class="store-header">
-      <button class="store-back-btn" onclick="closePolicy()">← العودة</button>
-      <div class="store-header-title">سياسة الإلغاء والاسترجاع</div>
-    </div>
-    <div class="section-card policy-text" style="margin:16px 20px;">
-      <p>نحرص في دادا على توضيح سياسة الإلغاء والاسترجاع قبل إتمام عملية الشراء، وتختلف السياسة بحسب نوع المنتج أو الخدمة.</p>
-      <h3>المنتجات الرقمية</h3>
-      <p>جميع المنتجات الرقمية غير قابلة للاسترجاع أو الاستبدال بعد إتمام عملية الشراء وتسليم المنتج. في حال وجود مشكلة تقنية تمنع وصول الملف أو تحميله، يرجى التواصل معنا وسيتم العمل على حل المشكلة وإعادة إرسال المنتج.</p>
-      <h3>الاستشارات</h3>
-      <p>يمكن طلب إلغاء أو تغيير موعد الاستشارة قبل موعدها المتفق عليه، وذلك بالتواصل مع دادا. بعد بدء الاستشارة أو تقديم الخدمة، لا يمكن استرجاع قيمة الخدمة أو الجزء الذي تم تقديمه منها. وفي حال تعذر تقديم الاستشارة من جانب دادا، يمكن للعميلة اختيار موعد بديل أو استرداد قيمة الخدمة التي لم يتم تقديمها.</p>
-      <h3>استرداد المبالغ</h3>
-      <p>عند قبول طلب الاسترجاع، تتم إعادة المبلغ من خلال وسيلة الدفع المستخدمة، وقد تختلف مدة وصول المبلغ بحسب مزود خدمة الدفع أو البنك.</p>
-      <h3>التواصل</h3>
-      <p>لطلب الإلغاء أو الاسترجاع أو الإبلاغ عن مشكلة في منتج أو خدمة، يمكن التواصل معنا عبر وسائل التواصل الموضحة في الموقع</p>
     </div>
   </div>
 </div>
@@ -933,12 +811,8 @@ const deleteClient  = async(code)=>{
 const $=id=>document.getElementById(id);
 const showScreen=id=>{document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.scrollTop=0;});const el=$(id);if(el){el.classList.add('active');el.scrollTop=0;}document.documentElement.classList.toggle('landing-active',id==='landingScreen');document.documentElement.classList.toggle('login-active',id==='loginScreen');};
 function goToLogin(){showScreen('loginScreen');}
-const WHATSAPP_LINK = 'https://wa.me/966559159424';
+const WHATSAPP_LINK = 'https://wa.me/9665XXXXXXXX'; // ← غيّري الرقم هنا
 function openWhatsApp(){window.open(WHATSAPP_LINK,'_blank');}
-const TIKTOK_LINK = 'https://www.tiktok.com/@dada.sleep';
-function openTikTok(){window.open(TIKTOK_LINK,'_blank');}
-function openPolicy(id){showScreen(id);}
-function closePolicy(){showScreen('landingScreen');}
 // goToStore defined below with carousel init
 const showAlert=(el,msg,type='error')=>{el.className=`alert alert-${type}`;el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',4000);};
 const gv=id=>$(id)?.value||'';
@@ -2083,7 +1957,7 @@ async function submitReviewForm() {
   }
 }
 
-Object.assign(window,{goToStore,openProduct,detailCarouselMove,detailCarouselGo,openReviewForm,rfSetStar,submitReviewForm,startNapTimer,stopNapTimer,switchLoginTab,loginMother,loginConsultant,logout,showTab,showFollowupTab,saveDay,saveFuDay,saveConsultantNotes,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,regenerateClientCode,selectDays,viewClientAsync,viewClientFollowup,confirmDeleteAsync,exportAllToCSV,exportClientCSV,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToFollowup,goToProfile,viewSurveyAsync,addFollowupWeek,updateAgeDisplay,formatTime12,fuSelectDay,selectNapMood,fuSelectWeekNotes,saveWeekNotesForm,goToLogin,openWhatsApp,goToStore,openTikTok,openPolicy,closePolicy});
+Object.assign(window,{goToStore,openProduct,detailCarouselMove,detailCarouselGo,openReviewForm,rfSetStar,submitReviewForm,startNapTimer,stopNapTimer,switchLoginTab,loginMother,loginConsultant,logout,showTab,showFollowupTab,saveDay,saveFuDay,saveConsultantNotes,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,regenerateClientCode,selectDays,viewClientAsync,viewClientFollowup,confirmDeleteAsync,exportAllToCSV,exportClientCSV,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToFollowup,goToProfile,viewSurveyAsync,addFollowupWeek,updateAgeDisplay,formatTime12,fuSelectDay,selectNapMood,fuSelectWeekNotes,saveWeekNotesForm,goToLogin,openWhatsApp,goToStore,showScreen});
 </script>
 </body>
 </html>
