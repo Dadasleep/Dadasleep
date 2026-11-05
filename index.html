@@ -59,6 +59,11 @@ html.landing-active body,html.login-active body{overflow-y:auto!important;height
 .survey-hero{position:relative;min-height:140px;background:var(--sage);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;}
 .survey-hero h1{font-size:24px;font-weight:800;color:white;margin-bottom:8px;}
 .survey-hero p{font-size:13px;color:rgba(255,255,255,0.88);line-height:1.7;max-width:320px;}
+.profile-caregivers{border:0;min-width:0;padding:0;}
+.profile-caregivers legend{font-size:14px;font-weight:600;margin-bottom:8px;}
+.profile-caregivers small,#surveyScreen .form-group>small{font-size:12px;color:var(--soft-brown);line-height:1.7;}
+.profile-caregiver-options{display:flex;flex-wrap:wrap;gap:10px 18px;margin-bottom:8px;}
+.profile-caregiver-options label{display:flex;align-items:center;gap:6px;cursor:pointer;}
 .survey-body{flex:1;padding:20px 16px 40px;background:var(--cream);}
 .survey-progress{display:flex;gap:6px;margin-bottom:24px;justify-content:center;}
 .progress-dot{width:10px;height:10px;border-radius:50%;background:var(--sage-light);transition:all 0.3s;}
@@ -576,8 +581,19 @@ textarea{resize:vertical;min-height:76px;}
     <div class="survey-section active" id="sec1">
       <div class="section-header"><h2>👶 تعريف بالأم والطفل</h2><p>معلومات أساسية</p></div>
       <div class="form-group"><label>اسم الأم</label><input type="text" id="s_momName" placeholder="اسمك الكريم"></div>
+      <div class="form-group"><label for="s_pregnancyIron">هل عانيتِ من نقص الحديد أثناء الحمل؟</label>
+        <select id="s_pregnancyIron"><option value="">اختياري — اختاري...</option><option>نعم</option><option>لا</option><option>لا أتذكر</option></select>
+      </div>
       <div class="form-group"><label>رقم التواصل (واتساب)</label><input type="tel" id="s_phone" placeholder="05xxxxxxxx"></div>
       <div class="form-group"><label>اسم الطفل</label><input type="text" id="s_babyName" placeholder="اسم طفلك"></div>
+      <fieldset class="form-group profile-caregivers" id="s_dayCaregivers"><legend>من يعتني بطفلك خلال النهار؟ <small>(اختياري — يمكن اختيار أكثر من إجابة)</small></legend>
+        <div class="profile-caregiver-options"><label><input type="checkbox" value="الأم" onchange="toggleCaregiverOther('day')"> الأم</label><label><input type="checkbox" value="الأب" onchange="toggleCaregiverOther('day')"> الأب</label><label><input type="checkbox" value="المربية" onchange="toggleCaregiverOther('day')"> المربية</label><label><input type="checkbox" value="الجد أو الجدة" onchange="toggleCaregiverOther('day')"> الجد أو الجدة</label><label><input type="checkbox" value="أخرى" onchange="toggleCaregiverOther('day')"> أخرى</label></div>
+        <div id="dayCaregiverOtherGroup" hidden><label for="s_dayCaregiverOther">أخرى (اختياري)</label><input type="text" id="s_dayCaregiverOther"></div>
+      </fieldset>
+      <fieldset class="form-group profile-caregivers" id="s_nightCaregivers"><legend>من يعتني بطفلك خلال الليل؟ <small>(اختياري — يمكن اختيار أكثر من إجابة)</small></legend>
+        <div class="profile-caregiver-options"><label><input type="checkbox" value="الأم" onchange="toggleCaregiverOther('night')"> الأم</label><label><input type="checkbox" value="الأب" onchange="toggleCaregiverOther('night')"> الأب</label><label><input type="checkbox" value="المربية" onchange="toggleCaregiverOther('night')"> المربية</label><label><input type="checkbox" value="الجد أو الجدة" onchange="toggleCaregiverOther('night')"> الجد أو الجدة</label><label><input type="checkbox" value="أخرى" onchange="toggleCaregiverOther('night')"> أخرى</label></div>
+        <div id="nightCaregiverOtherGroup" hidden><label for="s_nightCaregiverOther">أخرى (اختياري)</label><input type="text" id="s_nightCaregiverOther"></div>
+      </fieldset>
       <div class="form-group"><label>تاريخ ميلاد الطفل</label><input type="date" id="s_birthDate" onchange="updateAgeDisplay()"></div>
       <div class="form-group"><label>هل لديك أطفال آخرون؟</label>
         <div class="radio-group" id="rg_otherKids">
@@ -605,6 +621,9 @@ textarea{resize:vertical;min-height:76px;}
     </div>
     <div class="survey-section" id="sec2">
       <div class="section-header"><h2>🌙 أسئلة النوم</h2><p>تفاصيل نمط نوم طفلك</p></div>
+      <div class="form-group"><label for="s_dayActivities">كيف يقضي طفلك يومه عادةً؟ وما الأنشطة التي يمارسها خلال اليوم؟</label><textarea id="s_dayActivities" placeholder="اختياري..." aria-describedby="dayActivitiesHelp"></textarea><small id="dayActivitiesHelp">مثل اللعب الحركي، الخروج من المنزل، اللعب الهادئ، ووقت الشاشات.</small></div>
+      <div class="form-group"><label for="s_napEnvironment">صفي لي المكان والبيئة التي ينام فيها طفلك خلال الغفوات النهارية.</label><textarea id="s_napEnvironment" placeholder="اختياري..." aria-describedby="napEnvironmentHelp"></textarea><small id="napEnvironmentHelp">مثل مكان النوم، الإضاءة، الأصوات، وهل ينام في السرير أو أثناء التنقل.</small></div>
+      <div class="form-group"><label for="s_nightEnvironment">صفي لي المكان والبيئة التي ينام فيها طفلك خلال النوم الليلي.</label><textarea id="s_nightEnvironment" placeholder="اختياري..." aria-describedby="nightEnvironmentHelp"></textarea><small id="nightEnvironmentHelp">مثل غرفة النوم، الإضاءة، الأصوات، ووجود أشخاص آخرين في الغرفة.</small></div>
       <div class="form-group"><label>هل لدى طفلك روتين ثابت قبل نوم الليل؟</label>
         <div class="radio-group" id="rg_routine">
           <div class="radio-option" onclick="selectRadio('rg_routine',this,'لا')">لا</div>
@@ -728,7 +747,7 @@ textarea{resize:vertical;min-height:76px;}
   </div>
   <div class="home-body">
     <div class="home-card" onclick="goToProfile()">
-      <div class="home-card-icon">📋</div>
+      <div class="home-card-icon">👶🏻</div>
       <div style="flex:1"><div class="home-card-title">ملف الطفل</div><div class="home-card-sub">معلومات الطفل وأسئلة التقييم</div></div>
       <span style="color:var(--sage-light);font-size:22px">‹</span>
     </div>
@@ -738,7 +757,7 @@ textarea{resize:vertical;min-height:76px;}
       <span style="color:var(--sage-light);font-size:22px">‹</span>
     </div>
     <div class="home-card" onclick="goToFollowup()">
-      <div class="home-card-icon">📊</div>
+      <div class="home-card-icon">📋</div>
       <div style="flex:1">
         <div class="home-card-title">المتابعة</div>
         <div class="home-card-sub">متابعة أسبوعية لمدة أسبوعين</div>
@@ -890,8 +909,8 @@ let currentFollowupWeeks=2; // الافتراضي أسبوعان
 // DB
 const saveData      = async(code,day,data)=> await setDoc(doc(db,'sleepData',`${code}_day${day}`),{...data,code,day,updatedAt:new Date().toISOString()});
 const loadData      = async(code,day)=>{ try{const s=await getDoc(doc(db,'sleepData',`${code}_day${day}`));return s.exists()?s.data():null;}catch{return null;}};
-const saveSurvey    = async(code,data)=> await setDoc(doc(db,'surveys',code),{...data,code,savedAt:new Date().toISOString()});
-const loadSurvey    = async(code)=>{ try{const s=await getDoc(doc(db,'surveys',code));return s.exists()?s.data():null;}catch{return null;}};
+const saveSurvey    = async(code,data)=> await setDoc(doc(db,'surveys',code),{...data,code,savedAt:new Date().toISOString()},{merge:true});
+const loadSurvey    = async(code,strict=false)=>{ try{const s=await getDoc(doc(db,'surveys',code));return s.exists()?s.data():null;}catch(error){if(strict)throw error;return null;}};
 const saveFollowup = async(code,day,data)=>{
   const docId=`${code}_fu${day}`;
   console.log(`💾 saveFollowup → collection: followup | doc: ${docId} | fuWeek: ${fuWeek} | fuDay: ${fuDay}`);
@@ -1103,7 +1122,44 @@ onAuthStateChanged(auth, async (fbUser)=>{
 });
 
 // SURVEY
-function startSurvey(){showScreen('surveyScreen');surveySection=0;renderProgress();showSec(0);}
+let surveyLoadedCode=null, surveyLoadVersion=0;
+const surveyTextFields={momName:'s_momName',phone:'s_phone',babyName:'s_babyName',birthDate:'s_birthDate',otherKidsDetail:'s_otherKids',healthDetail:'s_health',birth:'s_birth',development:'s_development',routineDetail:'s_routine',nightWakings:'s_nightWakings',napsCount:'s_napsCount',napsRoutine:'s_napsRoutine',recentEvent:'s_recentEvent',personalityDesc:'s_personalityDesc',feedCount:'s_feedCount',problems:'s_problems',tried:'s_tried',goal:'s_goal',extra:'s_extra',pregnancyIron:'s_pregnancyIron',dayCaregiverOther:'s_dayCaregiverOther',nightCaregiverOther:'s_nightCaregiverOther',dayActivities:'s_dayActivities',napEnvironment:'s_napEnvironment',nightEnvironment:'s_nightEnvironment'};
+const surveyRadioFields={otherKids:'rg_otherKids',health:'rg_health',prevConsult:'rg_prevConsult',routine:'rg_routine',sleepPlace:'rg_sleepPlace',sleepHow:'rg_sleepHow',backToSleep:'rg_backToSleep',earlyMorning:'rg_earlyMorning',personality:'rg_personality',mood:'rg_mood',pacifier:'rg_pacifier',feeding:'rg_feeding',appetite:'rg_appetite'};
+const caregiverValues=period=>Array.from(document.querySelectorAll(`#s_${period}Caregivers input[type="checkbox"]:checked`),el=>el.value);
+function toggleCaregiverOther(period){$(`${period}CaregiverOtherGroup`).hidden=!caregiverValues(period).includes('أخرى');}
+function fillSurvey(data={}){
+  document.querySelectorAll('#surveyScreen input,#surveyScreen textarea,#surveyScreen select').forEach(el=>{if(el.type==='checkbox')el.checked=false;else el.value='';});
+  document.querySelectorAll('#surveyScreen .radio-option').forEach(el=>el.classList.remove('selected'));
+  for(const id of ['otherKidsDetail','healthDetail','routineDetail','sleepPlaceOther','sleepHowOtherGroup','backToSleepOtherGroup'])if($(id))$(id).style.display='none';
+  for(const [key,id] of Object.entries(surveyTextFields))$(id).value=data[key]??'';
+  for(const [key,id] of Object.entries(surveyRadioFields)){
+    const options=Array.from(document.querySelectorAll(`#${id} .radio-option`));
+    const match=options.find(el=>el.textContent.trim()===data[key]);
+    if(match)selectRadio(id,match,data[key]);
+    else if(data[key]&&['sleepPlace','sleepHow','backToSleep'].includes(key)){
+      const other=options[options.length-1];selectRadio(id,other,other.textContent.trim());
+      const input={sleepPlace:'s_sleepPlaceOther',sleepHow:'s_sleepHowOther',backToSleep:'s_backToSleepOther'}[key];if($(input))$(input).value=data[key];
+    }
+  }
+  for(const period of ['day','night']){
+    const values=Array.isArray(data[`${period}Caregivers`])?data[`${period}Caregivers`]:[];
+    document.querySelectorAll(`#s_${period}Caregivers input[type="checkbox"]`).forEach(el=>el.checked=values.includes(el.value));
+    toggleCaregiverOther(period);
+  }
+}
+async function startSurvey(){
+  const code=user?.code;if(!code)return;
+  const version=++surveyLoadVersion;surveyLoadedCode=null;
+  showScreen('surveyScreen');surveySection=0;renderProgress();showSec(0);fillSurvey();
+  const controls=Array.from(document.querySelectorAll('#surveyScreen input,#surveyScreen select,#surveyScreen textarea,#surveyScreen button'));
+  controls.forEach(el=>el.disabled=true);
+  try{
+    const data=await loadSurvey(code,true);
+    if(version!==surveyLoadVersion||user?.code!==code)return;
+    fillSurvey(data||{});surveyLoadedCode=code;
+  }catch{if(version===surveyLoadVersion)alert('تعذر تحميل ملف الطفل. يرجى العودة والمحاولة مجددًا قبل الحفظ.');}
+  finally{if(version===surveyLoadVersion){controls.forEach(el=>el.disabled=false);document.querySelector('#sec4 .btn-next').disabled=surveyLoadedCode!==code;}}
+}
 function renderProgress(){$('surveyProgress').innerHTML=[0,1,2,3].map(i=>`<div class="progress-dot ${i<surveySection?'done':i===surveySection?'active':''}"></div>`).join('');}
 function showSec(n){document.querySelectorAll('.survey-section').forEach((s,i)=>s.classList.toggle('active',i===n));renderProgress();const sc=$('surveyScreen');if(sc)sc.scrollTop=0;}
 function nextSection(){if(surveySection<3){surveySection++;showSec(surveySection);}}
@@ -1119,9 +1175,13 @@ function selectRadio(gid,el,val){
 }
 const getR=gid=>{const s=document.querySelector(`#${gid} .radio-option.selected`);return s?s.textContent.trim():'';};
 async function submitSurvey(){
+  if(!user?.code||surveyLoadedCode!==user.code){alert('يرجى تحميل ملف الطفل قبل الحفظ');return;}
   const btn=document.querySelector('#sec4 .btn-next');btn.textContent='جاري الحفظ...';btn.disabled=true;
   try{
     await saveSurvey(user.code,{
+      pregnancyIron:gv('s_pregnancyIron'),dayCaregivers:caregiverValues('day'),nightCaregivers:caregiverValues('night'),
+      dayCaregiverOther:gv('s_dayCaregiverOther'),nightCaregiverOther:gv('s_nightCaregiverOther'),
+      dayActivities:gv('s_dayActivities'),napEnvironment:gv('s_napEnvironment'),nightEnvironment:gv('s_nightEnvironment'),
       momName:gv('s_momName'),phone:gv('s_phone'),babyName:gv('s_babyName'),birthDate:gv('s_birthDate'),
       otherKids:getR('rg_otherKids'),otherKidsDetail:gv('s_otherKids'),health:getR('rg_health'),healthDetail:gv('s_health'),
       birth:gv('s_birth'),prevConsult:getR('rg_prevConsult'),development:gv('s_development'),
@@ -1140,7 +1200,7 @@ async function submitSurvey(){
 
 // HOME
 function showHome(){showScreen('homeScreen');$('homeWelcome').textContent=`أهلاً ${user.name}! 💛`;}
-function goToProfile(){startSurvey();}
+function goToProfile(){return startSurvey();}
 function goHome(){user?.isConsultant?enterConsultantApp():showHome();}
 
 // DIARY
@@ -1403,7 +1463,7 @@ function napBlock(n,prefix=''){
     <div class="form-group"><label>وقت الاستيقاظ</label><input type="time" id="nap${pid}End" onchange="calcNapDuration(${n},'${prefix}')"></div>
     <div class="nap-duration-display" id="nap${pid}DurationDisplay"></div>
     <input type="hidden" id="nap${pid}Duration">
-    <div class="form-group" style="margin-bottom:0;margin-top:8px"><label>استغراق حتى نام (دقائق)</label><input type="number" id="nap${pid}Onset" placeholder="مثال: 10" min="0" max="120"></div>
+    <div class="form-group" style="margin-bottom:0;margin-top:8px"><label>كم استغرق حتى نام طفلك؟ (بالدقائق)</label><input type="number" id="nap${pid}Onset" placeholder="مثال: 10" min="0" max="120"></div>
     <div class="form-group" style="margin-top:10px;margin-bottom:0">
       <label style="font-size:13px;font-weight:600;color:var(--warm-brown)">كيف كانت فترة الاستيقاظ قبل هذه القيلولة؟</label>
       <div class="mood-chips" id="nap${pid}MoodWrap">${moods.map(m=>`<button type="button" class="mood-chip" data-mood="${m}" onclick="selectNapMood('${pid}','${m}',this)">${m}</button>`).join('')}</div>
@@ -1439,7 +1499,7 @@ function buildLogHTML(mode){
       </select>
     </div>
     <div class="form-group" id="otherLocationGroup" style="display:none"><label>اذكري مكان النوم</label><input type="text" id="sleepLocationOther"></div>
-    <div class="form-group"><label>استغراق حتى نام (دقائق)</label><input type="number" id="sleepDuration" placeholder="مثال: 20" min="0" max="180"></div>
+    <div class="form-group"><label>كم استغرق حتى نام طفلك؟ (بالدقائق)</label><input type="number" id="sleepDuration" placeholder="مثال: 20" min="0" max="180"></div>
   </div>
   <div class="section-card"><div class="section-title">🌜 الاستيقاظ الليلي</div>
     <div class="form-group"><label>عدد مرات الاستيقاظ</label><input type="number" id="nightWakings" placeholder="مثال: 3" min="0" max="20"></div>
@@ -1657,7 +1717,10 @@ async function viewClientFollowup(code,name){
 async function viewSurveyAsync(code,name){
   const s=await loadSurvey(code);if(!s){alert('لا يوجد استبيان لهذه العميلة بعد');return;}
   const fields=[['اسم الأم',s.momName],['رقم التواصل',s.phone],['اسم الطفل',s.babyName],['تاريخ الميلاد',s.birthDate?(s.birthDate+(s.birthDate?` (${calcBabyAge(s.birthDate)})`:'')):''],['أطفال آخرون',s.otherKids],['تفاصيل',s.otherKidsDetail],['مشاكل صحية',s.health],['تفاصيل صحية',s.healthDetail],['الولادة',s.birth],['مستشارة سابقة',s.prevConsult],['التطور',s.development],['روتين ثابت',s.routine],['تفاصيل الروتين',s.routineDetail],['مكان النوم',s.sleepPlace],['كيف ينام',s.sleepHow],['بداية الروتين',s.bedtimeStart],['استغراق(د)',s.sleepOnset],['استيقاظات ليلية',s.nightWakings],['العودة للنوم',s.backToSleep],['يستيقظ باكراً',s.earlyMorning],['عدد القيلولات',s.napsCount],['انتظام القيلولات',s.napsRoutine],['مزاج اليوم',s.mood],['المصاصة',s.pacifier],['حدث مؤخراً',s.recentEvent],['طباع الطفل',s.personality],['وصف الطباع',s.personalityDesc],['نوع الرضاعة',s.feeding],['عدد الرضعات',s.feedCount],['الشهية',s.appetite],['مشاكل النوم',s.problems],['جربت قبل',s.tried],['الهدف',s.goal],['تفاصيل إضافية',s.extra]];
-  $('tab-log').innerHTML=`<div style="padding:8px 0"><h2 style="font-size:17px;font-weight:700;color:var(--warm-brown);margin-bottom:14px">📋 ملف ${name}</h2><div class="section-card">${fields.filter(f=>f[1]).map(f=>rowHTML(f[0],f[1])).join('')}</div></div>`;
+  const caregivers=values=>Array.isArray(values)?values.join('، '):'';
+  fields.push(['هل عانيتِ من نقص الحديد أثناء الحمل؟',s.pregnancyIron],['من يعتني بطفلك خلال النهار؟',caregivers(s.dayCaregivers)],['مقدم رعاية نهاري آخر',s.dayCaregivers?.includes('أخرى')?s.dayCaregiverOther:''],['من يعتني بطفلك خلال الليل؟',caregivers(s.nightCaregivers)],['مقدم رعاية ليلي آخر',s.nightCaregivers?.includes('أخرى')?s.nightCaregiverOther:''],['كيف يقضي طفلك يومه عادةً؟ وما الأنشطة التي يمارسها خلال اليوم؟',s.dayActivities],['صفي لي المكان والبيئة التي ينام فيها طفلك خلال الغفوات النهارية.',s.napEnvironment],['صفي لي المكان والبيئة التي ينام فيها طفلك خلال النوم الليلي.',s.nightEnvironment]);
+  const profileEscape=value=>String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  $('tab-log').innerHTML=`<div style="padding:8px 0"><h2 style="font-size:17px;font-weight:700;color:var(--warm-brown);margin-bottom:14px">📋 ملف ${profileEscape(name)}</h2><div class="section-card">${fields.filter(f=>f[1]).map(f=>rowHTML(f[0],profileEscape(f[1]))).join('')}</div></div>`;
   showTab('log');
 }
 
@@ -2085,7 +2148,7 @@ async function submitReviewForm() {
   }
 }
 
-Object.assign(window,{goToStore,openProduct,detailCarouselMove,detailCarouselGo,openReviewForm,rfSetStar,submitReviewForm,startNapTimer,stopNapTimer,switchLoginTab,loginMother,loginConsultant,logout,showTab,showFollowupTab,saveDay,saveFuDay,saveConsultantNotes,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,regenerateClientCode,selectDays,viewClientAsync,viewClientFollowup,confirmDeleteAsync,exportAllToCSV,exportClientCSV,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToFollowup,goToProfile,viewSurveyAsync,addFollowupWeek,updateAgeDisplay,formatTime12,fuSelectDay,selectNapMood,fuSelectWeekNotes,saveWeekNotesForm,goToLogin,openWhatsApp,goToStore,showScreen,showHome,openTikTok,openPolicy,closePolicy});
+Object.assign(window,{toggleCaregiverOther,goToStore,openProduct,detailCarouselMove,detailCarouselGo,openReviewForm,rfSetStar,submitReviewForm,startNapTimer,stopNapTimer,switchLoginTab,loginMother,loginConsultant,logout,showTab,showFollowupTab,saveDay,saveFuDay,saveConsultantNotes,calcNapDuration,toggleOtherLocation,switchDay,openAddClientModal,closeAddClientModal,addClient,regenerateClientCode,selectDays,viewClientAsync,viewClientFollowup,confirmDeleteAsync,exportAllToCSV,exportClientCSV,nextSection,prevSection,submitSurvey,selectRadio,goHome,goToDiary,goToFollowup,goToProfile,viewSurveyAsync,addFollowupWeek,updateAgeDisplay,formatTime12,fuSelectDay,selectNapMood,fuSelectWeekNotes,saveWeekNotesForm,goToLogin,openWhatsApp,goToStore,showScreen,showHome,openTikTok,openPolicy,closePolicy});
 </script>
 </body>
 </html>
