@@ -652,6 +652,7 @@ textarea{resize:vertical;min-height:76px;}
         </div>
       </div>
 
+      <div class="form-group" id="sleepHowOtherGroup" style="display:none"><label for="s_sleepHowOther">اشرحي كيف ينام طفلك</label><input type="text" id="s_sleepHowOther" placeholder="اختياري..."></div>
       <div class="form-group"><label>كم مرة يستيقظ في الليل؟</label><input type="number" id="s_nightWakings" placeholder="مثال: 3" min="0" max="20"></div>
       <div class="form-group"><label>ما الذي يساعده على العودة للنوم؟</label>
         <div class="radio-group" id="rg_backToSleep">
@@ -1122,13 +1123,14 @@ onAuthStateChanged(auth, async (fbUser)=>{
 });
 
 // SURVEY
-let surveyLoadedCode=null, surveyLoadVersion=0;
+let surveyLoadedCode=null, surveyLoadedUser=null, surveyLoadVersion=0, surveyLoading=false, surveySavePending=false, surveyInitialValues=null;
 const surveyTextFields={momName:'s_momName',phone:'s_phone',babyName:'s_babyName',birthDate:'s_birthDate',otherKidsDetail:'s_otherKids',healthDetail:'s_health',birth:'s_birth',development:'s_development',routineDetail:'s_routine',nightWakings:'s_nightWakings',napsCount:'s_napsCount',napsRoutine:'s_napsRoutine',recentEvent:'s_recentEvent',personalityDesc:'s_personalityDesc',feedCount:'s_feedCount',problems:'s_problems',tried:'s_tried',goal:'s_goal',extra:'s_extra',pregnancyIron:'s_pregnancyIron',dayCaregiverOther:'s_dayCaregiverOther',nightCaregiverOther:'s_nightCaregiverOther',dayActivities:'s_dayActivities',napEnvironment:'s_napEnvironment',nightEnvironment:'s_nightEnvironment'};
 const surveyRadioFields={otherKids:'rg_otherKids',health:'rg_health',prevConsult:'rg_prevConsult',routine:'rg_routine',sleepPlace:'rg_sleepPlace',sleepHow:'rg_sleepHow',backToSleep:'rg_backToSleep',earlyMorning:'rg_earlyMorning',personality:'rg_personality',mood:'rg_mood',pacifier:'rg_pacifier',feeding:'rg_feeding',appetite:'rg_appetite'};
 const caregiverValues=period=>Array.from(document.querySelectorAll(`#s_${period}Caregivers input[type="checkbox"]:checked`),el=>el.value);
 function toggleCaregiverOther(period){$(`${period}CaregiverOtherGroup`).hidden=!caregiverValues(period).includes('أخرى');}
 function fillSurvey(data={}){
   document.querySelectorAll('#surveyScreen input,#surveyScreen textarea,#surveyScreen select').forEach(el=>{if(el.type==='checkbox')el.checked=false;else el.value='';});
+  document.querySelectorAll('#surveyScreen .profile-legacy-option').forEach(el=>el.remove());
   document.querySelectorAll('#surveyScreen .radio-option').forEach(el=>el.classList.remove('selected'));
   for(const id of ['otherKidsDetail','healthDetail','routineDetail','sleepPlaceOther','sleepHowOtherGroup','backToSleepOtherGroup'])if($(id))$(id).style.display='none';
   for(const [key,id] of Object.entries(surveyTextFields))$(id).value=data[key]??'';
@@ -1139,6 +1141,9 @@ function fillSurvey(data={}){
     else if(data[key]&&['sleepPlace','sleepHow','backToSleep'].includes(key)){
       const other=options[options.length-1];selectRadio(id,other,other.textContent.trim());
       const input={sleepPlace:'s_sleepPlaceOther',sleepHow:'s_sleepHowOther',backToSleep:'s_backToSleepOther'}[key];if($(input))$(input).value=data[key];
+    } else if(data[key]){
+      const legacy=document.createElement('div');legacy.className='radio-option profile-legacy-option';legacy.textContent=String(data[key]);
+      legacy.onclick=()=>selectRadio(id,legacy,legacy.textContent.trim());$(id).appendChild(legacy);selectRadio(id,legacy,legacy.textContent.trim());
     }
   }
   for(const period of ['day','night']){
@@ -1147,18 +1152,24 @@ function fillSurvey(data={}){
     toggleCaregiverOther(period);
   }
 }
+function updateSurveyControls(){
+  const busy=surveyLoading||surveySavePending;
+  document.querySelectorAll('#surveyScreen input,#surveyScreen select,#surveyScreen textarea,#surveyScreen button').forEach(el=>el.disabled=busy);
+  document.querySelectorAll('#surveyScreen .radio-option').forEach(el=>el.inert=busy);
+  const btn=document.querySelector('#sec4 .btn-next');
+  btn.disabled=busy||!surveyLoadedCode||surveyLoadedCode!==user?.code||surveyLoadedUser!==user;
+  btn.textContent=surveySavePending?'جاري الحفظ...':'إرسال ✓';
+}
 async function startSurvey(){
-  const code=user?.code;if(!code)return;
-  const version=++surveyLoadVersion;surveyLoadedCode=null;
-  showScreen('surveyScreen');surveySection=0;renderProgress();showSec(0);fillSurvey();
-  const controls=Array.from(document.querySelectorAll('#surveyScreen input,#surveyScreen select,#surveyScreen textarea,#surveyScreen button'));
-  controls.forEach(el=>el.disabled=true);
+  const profileUser=user,code=profileUser?.code;if(!code||surveySavePending)return;
+  const version=++surveyLoadVersion;surveyLoadedCode=null;surveyLoadedUser=null;surveyInitialValues=null;surveyLoading=true;
+  showScreen('surveyScreen');surveySection=0;renderProgress();showSec(0);fillSurvey();updateSurveyControls();
   try{
     const data=await loadSurvey(code,true);
-    if(version!==surveyLoadVersion||user?.code!==code)return;
-    fillSurvey(data||{});surveyLoadedCode=code;
-  }catch{if(version===surveyLoadVersion)alert('تعذر تحميل ملف الطفل. يرجى العودة والمحاولة مجددًا قبل الحفظ.');}
-  finally{if(version===surveyLoadVersion){controls.forEach(el=>el.disabled=false);document.querySelector('#sec4 .btn-next').disabled=surveyLoadedCode!==code;}}
+    if(version!==surveyLoadVersion||user!==profileUser)return;
+    fillSurvey(data||{});surveyInitialValues=data?collectSurvey():null;surveyLoadedCode=code;surveyLoadedUser=profileUser;
+  }catch{if(version===surveyLoadVersion&&user===profileUser)alert('تعذر تحميل ملف الطفل. يرجى العودة والمحاولة مجددًا قبل الحفظ.');}
+  finally{if(version===surveyLoadVersion){surveyLoading=false;updateSurveyControls();}}
 }
 function renderProgress(){$('surveyProgress').innerHTML=[0,1,2,3].map(i=>`<div class="progress-dot ${i<surveySection?'done':i===surveySection?'active':''}"></div>`).join('');}
 function showSec(n){document.querySelectorAll('.survey-section').forEach((s,i)=>s.classList.toggle('active',i===n));renderProgress();const sc=$('surveyScreen');if(sc)sc.scrollTop=0;}
@@ -1174,11 +1185,8 @@ function selectRadio(gid,el,val){
   if(gid==='rg_backToSleep'){const g=$('backToSleepOtherGroup');if(g)g.style.display=val==='غيره'?'block':'none';}
 }
 const getR=gid=>{const s=document.querySelector(`#${gid} .radio-option.selected`);return s?s.textContent.trim():'';};
-async function submitSurvey(){
-  if(!user?.code||surveyLoadedCode!==user.code){alert('يرجى تحميل ملف الطفل قبل الحفظ');return;}
-  const btn=document.querySelector('#sec4 .btn-next');btn.textContent='جاري الحفظ...';btn.disabled=true;
-  try{
-    await saveSurvey(user.code,{
+function collectSurvey(){
+  return {
       pregnancyIron:gv('s_pregnancyIron'),dayCaregivers:caregiverValues('day'),nightCaregivers:caregiverValues('night'),
       dayCaregiverOther:gv('s_dayCaregiverOther'),nightCaregiverOther:gv('s_nightCaregiverOther'),
       dayActivities:gv('s_dayActivities'),napEnvironment:gv('s_napEnvironment'),nightEnvironment:gv('s_nightEnvironment'),
@@ -1192,10 +1200,23 @@ async function submitSurvey(){
       napsCount:gv('s_napsCount'),napsRoutine:gv('s_napsRoutine'),mood:getR('rg_mood'),pacifier:getR('rg_pacifier'),
       recentEvent:gv('s_recentEvent'),personality:getR('rg_personality'),personalityDesc:gv('s_personalityDesc'),feeding:getR('rg_feeding'),feedCount:gv('s_feedCount'),
       appetite:getR('rg_appetite'),problems:gv('s_problems'),tried:gv('s_tried'),goal:gv('s_goal'),extra:gv('s_extra')
-    });
-    showHome();
-  }catch{alert('حدث خطأ أثناء الحفظ');}
-  finally{btn.textContent='إرسال ✓';btn.disabled=false;}
+  };
+}
+async function submitSurvey(){
+  if(surveySavePending)return;
+  if(surveyLoading||!user?.code||surveyLoadedCode!==user.code||surveyLoadedUser!==user){alert('يرجى تحميل ملف الطفل قبل الحفظ');return;}
+  const profileUser=user,code=profileUser.code,version=surveyLoadVersion,values=collectSurvey();
+  // Omit unchanged fields so an unrelated edit cannot replace historical or concurrently updated answers.
+  const changes=surveyInitialValues?Object.fromEntries(Object.entries(values).filter(([key,value])=>JSON.stringify(value)!==JSON.stringify(surveyInitialValues[key]))):values;
+  surveySavePending=true;updateSurveyControls();
+  try{
+    await saveSurvey(code,changes);
+    if(version===surveyLoadVersion&&user===profileUser){
+      surveyInitialValues=values;
+      if($('surveyScreen').classList.contains('active'))showHome();
+    }
+  }catch{if(version===surveyLoadVersion&&user===profileUser)alert('حدث خطأ أثناء الحفظ');}
+  finally{surveySavePending=false;updateSurveyControls();}
 }
 
 // HOME
