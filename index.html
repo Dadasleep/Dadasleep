@@ -26,7 +26,8 @@ html.landing-active body,html.login-active body{overflow-y:auto!important;height
 #storeScreen.active{display:flex;}
 
 /* LOGIN */
-#landingScreen{flex-direction:column;align-items:center;padding:32px 20px 32px;background:linear-gradient(160deg,#eef4ee 0%,#faf8f3 60%,#f5ede2 100%);display:none;}
+#landingScreen,.home-hero{background:linear-gradient(160deg,#eef4ee 0%,#faf8f3 60%,#f5ede2 100%);}
+#landingScreen{flex-direction:column;align-items:center;padding:32px 20px 32px;display:none;}
 #landingScreen.active{display:flex;}
 
 .landing-welcome{font-size:19px;font-weight:700;color:var(--sage);text-align:center;margin:8px 0 4px;}
@@ -75,10 +76,10 @@ html.landing-active body,html.login-active body{overflow-y:auto!important;height
 /* HOME */
 #homeScreen{min-height:100vh;}
 #homeScreen.active{display:flex;flex-direction:column;min-height:100%;}
-.home-hero{position:relative;min-height:220px;background:var(--sage);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;text-align:center;}
-.home-logout{position:absolute;top:16px;left:16px;background:rgba(255,255,255,0.2);border:none;color:white;padding:6px 14px;border-radius:20px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;}
+.home-hero{position:relative;display:flex;flex-direction:column;align-items:center;padding:32px 20px;text-align:center;}
+.home-logout{position:absolute;top:16px;left:16px;background:var(--sage-pale);border:none;color:var(--soft-brown);padding:6px 14px;border-radius:20px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;}
 .home-hero-logo{font-size:36px;font-weight:900;color:var(--gold);font-family:'Playfair Display',serif;letter-spacing:4px;margin-bottom:6px;}
-.home-welcome{font-size:22px;font-weight:700;color:white;}
+.home-welcome{font-size:22px;font-weight:700;color:var(--sage);}
 .home-sub{font-size:13px;color:rgba(255,255,255,0.8);margin-top:4px;}
 .home-body{flex:1;padding:20px 16px;}
 .home-card{background:var(--white);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;}
@@ -722,9 +723,8 @@ textarea{resize:vertical;min-height:76px;}
 <div id="homeScreen" class="screen">
   <div class="home-hero">
     <button class="home-logout" onclick="logout()">خروج</button>
-    <img src="assets/images/dada-logo.webp" alt="DaDa Sleep" width="543" height="302" style="width:180px;max-width:100%;height:auto;margin-bottom:12px;">
+    <img src="assets/images/dada-logo.webp" style="width:180px;margin-bottom:0px;mix-blend-mode:multiply;" alt="DaDa">
     <div class="home-welcome" id="homeWelcome">أهلاً! 💛</div>
-    <div class="home-sub">استشارات نوم الأطفال</div>
   </div>
   <div class="home-body">
     <div class="home-card" onclick="goToProfile()">
